@@ -1,0 +1,813 @@
+42                                                                                             IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+
+     Task-Driven Underwater Image Enhancement via
+            Hierarchical Semantic Refinement
+                                 Meng Yu , Liquan Shen , Yihan Yu , Yu Zhang, and Rui Le
+
+
+
+   Abstract—Underwater image enhancement (UIE) is crucial                                             I. I NTRODUCTION
+for robust marine exploration, yet existing methods prioritize
+perceptual quality while overlooking irreversible semantic cor-
+ruption that impairs downstream tasks. Unlike terrestrial images,
+underwater semantics exhibit layer-specific degradations: shallow
+                                                                               U      NDERWATER images are essential for advancing
+                                                                                      machine vision applications in marine exploration,
+                                                                               underwater robotics, and ecological monitoring. Unlike ter-
+features suffer from color shifts and edge erosion, while deep                 restrial images, underwater images suffer from complex
+features face semantic ambiguity. These distortions entangle                   degradations due to wavelength-dependent light absorption
+with semantic content across feature hierarchies, where direct                 and scattering, leading to severe color shifts, contrast loss,
+enhancement amplifies interference in downstream tasks. Even if
+distortions are removed, the damaged semantic structures cannot                and structural distortions. Crucially, these degradations lead
+be fully recovered, making it imperative to further enhance                    to irreversible semantic corruption across feature levels, dam-
+corrupted content. To address these challenges, we propose                     aging both low-level textures and high-level semantics. Such
+a task-driven UIE framework that redefines enhancement as                      degradation disrupts the feature representations required for
+machine-interpretable semantic recovery rather than mere dis-                  accurate object detection [1], segmentation [2], and other
+tortion removal. First, we introduce a multi-scale underwater
+distortion-aware generator to perceive distortions across feature              high-level vision tasks [3], making effective underwater image
+levels and provide a prior for distortion removal. Second,                     enhancement (UIE) crucial for machine vision systems.
+leveraging this prior and the absence of clean underwater                         Conventional UIE methods can be categorized into three
+references, we propose a stable self-supervised disentanglement                groups. Image-based methods [4], [5], [6], [7], [8], [9], [10],
+strategy to explicitly separate distortions from corrupted content             [11] adjust low-level pixel statistics, such as contrast or white
+through CLIP-based semantic constraints and identity con-
+sistency. Finally, to compensate for the irreversible semantic                 balance, but often amplify noise and fail to preserve task-
+loss, we design a task-aware hierarchical enhancement mod-                     relevant semantics. Physics-based methods [12], [13], [14],
+ule that refines shallow details via spatial-frequency fusion                  [15], [16], [17], [18], [19] model light propagation using
+and strengthens deep semantics through multi-scale context                     attenuation and scattering equations based on underwater
+aggregation, aligning results with machine vision requirements.                image formation model [20]. Though interpretable, they rely
+Extensive experiments on segmentation, detection, and saliency
+tasks demonstrate the superiority of our method in restoring                   on oversimplified assumptions and fail to handle real-world
+machine-friendly semantics from degraded underwater images.                    complexities like dynamic lighting or suspended particles.
+Our code is available at https://github.com/gemyumeng/HSRUIE                   Learning-based methods [21], [22], [23], [24], [25], [26], [27],
+   Index Terms—Underwater image enhancement, machine vision                    [28], [29] learn mappings from paired data, which depend on
+tasks, self-supervised training, feature disentanglement.                      synthetic datasets [30] with domain gaps or human-labeled ref-
+                                                                               erences [31] optimized for aesthetics. However, these methods
+                                                                               primarily focus on perceptual quality, neglecting the feature-
+                                                                               level corruption that directly affects vision tasks.
+                                                                                  Task-driven enhancement frameworks [32], [33], [34], [35],
+                                                                               [36] have shown promise in terrestrial vision by incorpo-
+  Received 9 April 2025; revised 17 November 2025 and 13 December              rating task-specific constraints for training. However, their
+2025; accepted 16 December 2025. Date of publication 1 January 2026; date      direct application to underwater is hindered by domain-specific
+of current version 16 January 2026. This work was supported in part by         challenges. Firstly, unlike more homogeneous terrestrial noise,
+the National Natural Science Foundation of China under Grant 62531014,
+Grant 62271301, and Grant 61931022; in part by the Shanghai Excellent          underwater degradations exhibit layer-specific patterns, with
+Academic Leaders Program under Grant 23XD1401400; and in part by               shallow-layer features corrupted by color shifts and texture
+Shanghai Leading Talent Program of Eastern Talent Plan. The associate editor   loss and deep-layer features suffering semantic ambiguity.
+coordinating the review of this article and approving it for publication was
+Dr. Junhui Hou. (Corresponding author: Liquan Shen.)                           Additionally, terrestrial methods rely on clean reference
+  Meng Yu, Yihan Yu, Yu Zhang, and Rui Le are with the School                  images for supervision, which are unattainable in real-world
+of Communication and Information Engineering, Shanghai University,             underwater environments.
+Shanghai 200444, China (e-mail: ym19821214515@163.com; yiihan yu@
+163.com; 18817673389@163.com; lr23721314@shu.edu.cn).                             Some efforts to adapt task-driven frameworks to underwater
+  Liquan Shen is with the Key Laboratory of Specialty Fiber Optics and         have employed unsupervised paradigms, such as CycleGAN
+Optical Access Networks and the Joint International Research Laboratory of     [37]. These methods [38], [39] adopt pixel-level style transfer
+Specialty Fiber Optics and Advanced Communication, Shanghai University,
+Shanghai 200444, China (e-mail: jsslq@163.com).                                to remove distortions, which may disrupt task-relevant fea-
+  Digital Object Identifier 10.1109/TIP.2025.3647323                           tures. To mitigate this limitation, recent approach [40] attempts
+             1941-0042 © 2026 IEEE. All rights reserved, including rights for text and data mining, and training of artificial intelligence and
+                       similar technologies. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                     See https://www.ieee.org/publications/rights/index.html for more information.
+YU et al.: TASK-DRIVEN UIE VIA HIERARCHICAL SEMANTIC REFINEMENT                                                                        43
+
+
+
+                                                                            Motivated by these challenges, we propose a task-driven
+                                                                         UIE framework that redefines enhancement as semantic
+                                                                         recovery from corrupted content, which restores high-level
+                                                                         consistency to ensure that enhanced results preserve and
+                                                                         clarify semantic structures such as object shape and bound-
+                                                                         ary integrity, rather than merely improving low-level visual
+                                                                         quality. As illustrated in Fig. 2, our method addresses the
+                                                                         irreversible layer-specific semantic corruption by enhanc-
+                                                                         ing task-relevant features from corrupted content. First, we
+                                                                         develop a Multi-Scale Underwater Distortion-Aware Genera-
+                                                                         tor (MS-UDAG) to establish a distortion-sensitive generative
+                                                                         prior at multiple feature levels, enabling it to distinguish
+                                                                         between clean and degraded semantic features. Second, due
+                                                                         to the absence of clean reference images in underwater
+                                                                         environments, we propose a self-supervised disentanglement
+                                                                         strategy to separate distortions from corrupted content that
+                                                                         exploits MS-UDAG’s distortion perception. By leveraging
+                                                                         CLIP-based semantic constraints [41] and identity consistency,
+                                                                         our method achieves effective disentanglement without labeled
+                                                                         data. Finally, to compensate for the irreversible layer-specific
+                                                                         content loss caused by underwater distortions, we propose
+Fig. 1. Semantic corruption visualization of (a) Raw underwater image,
+(b) TACL [39], and (c) TFUIE [40]. Both shallow and deep features are    a task-aware hierarchical feature enhancement module that
+extracted from a pretrained VGG-19 network.                              restores task-relevant content at different feature layers. This
+                                                                         module restores fine-grained details in shallow layers through
+                                                                         spatial-frequency fusion while reinforcing semantic coherence
+to disentangle underwater images into content and distortion             in deep layers via multi-scale contextual aggregation, ensuring
+components in the feature space. However, it still relies on             optimal feature representation for downstream tasks. Our main
+the assumption that content can be cleanly separated from                contributions can be summarized as follows:
+distortions, neglecting the irreversible semantic corruption                1) We propose a task-driven UIE framework that redefines
+inherently caused by underwater degradation. Moreover, the                      enhancement as semantic recovery rather than mere dis-
+reliance of in-air images as references introduces semantic                     tortion removal. Considering layer-specific degradation
+misalignment, and uniform enhancement across feature levels                     in underwater semantic features, our method builds a
+fails to recover the task-critical features affected at different               distortion-aware prior and hierarchically enhances task-
+depths of the network.                                                          crucial content, ensuring optimal features for machine
+   To summarize, the effectiveness of UIE for machine                           vision tasks.
+vision hinges on two key challenges: 1) How to effec-                       2) To eliminate the interference on task-specific features,
+tively disentangle underwater distortions from content without                  we introduce a self-supervised disentanglement strat-
+clean references? Underwater distortions are deeply entan-                      egy to separate distortions from corrupted content by
+gled with semantic content across feature layers. Without                       leveraging the distortion-aware prior. In the absence
+disentanglement, residual distortions persist in the enhanced                   of clean references, we employ CLIP-based semantic
+features, introducing noise into downstream models. The                         constraints and identity consistency to achieve effective
+absence of clean underwater references makes supervised                         disentanglement.
+solutions infeasible, while unsupervised methods relying on                 3) To address the irreversible layer-specific content loss
+in-air images introduce semantic inconsistencies. 2) How to                     caused by underwater distortions, we develop a task-
+recover irreversible semantic loss from corrupted content                       aware hierarchical feature enhancement module that
+caused by layer-specific degradation? Even after success-                       restores fine details in shallow layers via spatial-
+ful distortion removal, underwater images still suffer from                     frequency fusion and enhances high-level semantics in
+irreversible semantic loss that critically affects downstream                   deep layers through multi-scale contextual aggregation.
+tasks. As illustrated in Fig. 1, feature visualizations from
+a pretrained VGG-19 network show that existing methods                                        II. R ELATED W ORK
+significantly distort semantic representations, where shallow
+layers lose fine-grained textures and deep layers exhibit                A. Underwater Image Enhancement Methods
+incoherent semantics. Such semantic corruption accumulated                  1) Traditional Methods: Traditional UIE methods are
+across layers cannot be recovered by simple pixel-level                  mainly based on underwater image formation model [12], [13],
+refinement, and existing methods applying uniform enhance-               [14], [15], [16], [17], [18], [19] or improve the image quality
+ment across all feature hierarchies fail to address these                by modifying the pixel value and distributions [4], [5], [6],
+diverse recovery needs, ultimately limiting their task-specific          [7], [8], [9], [10], [11], [42]. Berman et al. [12] take into
+performance.                                                             account multiple spectral profiles of different water types,
+44                                                                                 IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+reducing the problem to single image dehazing by estimating           representation to improve task performance. Despite these
+the attenuation ratios. Li et al. [14] propose a simple effective     advancements, current task-driven UIE methods rely on
+contrast enhancement algorithm based on a kind of histogram           unpaired in-air images as references, causing semantic mis-
+distribution prior, which increases the contrast and brightness       alignment due to the vast domain gap. Additionally, removing
+of underwater images. Ancuti et al. [6] fuse two inputs derived       distortions alone cannot restore irreversibly corrupted content,
+by correcting contrast and sharpening white-balanced versions         limiting their effectiveness in recovering essential content for
+of a single input image. Fu et al. [7] propose a Retinex-             machine vision.
+based approach that improves results through color correction,
+illumination of dark regions, preservation of naturalness, and
+enhancement of edges and details. Zhang et al. [42] propose a         B. Task-Friendly Image Processing Methods on Land
+wavelet decomposition fusion approach that integrates global             While UIE faces unique challenges, image processing meth-
+and local contrast enhancement to effectively restore under-          ods [32], [33], [34], [35], [36], [49], [50], [51], [52], [53], [54]
+water images. However, traditional methods primarily rely on          have been extensively studied in terrestrial vision to mitigate
+simplified assumptions regarding light propagation or low-            the effects of adverse conditions. Liu et al. [32] cope with
+level statistical adjustments. As a result, they struggle to handle   image denoising and high-level tasks jointly and explore the
+real-world complexities. More critically, these methods operate       mutual influence between them. Sharma et al. [34] use a range
+at the pixel level, failing to consider the semantic corruption of    of enhancement filters that can enhance image-specific details
+underwater features, which is detrimental to high-level vision        via end-to-end dynamic filter learning to improve image clas-
+tasks.                                                                sification performance. Son et al. [33] present a universal and
+   2) Deep Learning-Based Methods: In recent years, deep              recognition-friendly image enhancement network, which can
+learning-based approaches [21], [22], [23], [24], [26], [28],         handle various and latent image distortions. Yang et al. [35]
+[29], [43], [44], [45], [46], [47], [48] have emerged as              propose a recognition-driven image restoration network for
+promising solutions for UIE, which learn complex mappings             multiple degradation to recover high-quality images from var-
+between degraded underwater images and their enhanced                 ious unknown corruption types from the perspective of visual
+versions. Li et al. [21] present an UIE network via                   recognition within one model. Hashmi et al. [36] propose a
+medium transmission-guided multi-color space embedding.               novel module that hierarchically combines multi-scale features
+Islam et al. [23] present a conditional generative adversar-          using multi-headed attention guided by task-related loss func-
+ial network-based model for real-time image enhancement.              tion to create suitable representations. Kim et al. [51] propose
+Peng et al. [28] propose a U-shape transformer network                a task-driven super-resolution method that enhances the perfor-
+where the transformer model is for the first time introduced          mance of image recognition models by generating SR images
+to the UIE. Lin et al. [46] leverages 4-D light fields to             tailored to their specific perceptual needs. Chen et al. [50]
+enhance underwater images by mutually reinforcing image               propose UniRestore, a unified model that bridges perceptual
+restoration and depth estimation. Liu et al. [47] propose a plug-     and task-oriented image restoration by leveraging a diffusion
+and-play hybrid loss function that enables underwater image           prior and adaptive feature fusion to optimize results for both
+enhancement networks to surpass the quality of their imper-           human perception and downstream tasks. While these methods
+fect training references. Cao et al. [48] addresses multiple          offer useful insights, they are not directly applicable underwa-
+degradations in underwater images by emphasizing corrupted            ter due to fundamentally different degradations and the lack
+channels and regions for restoration. Although learning-based         of clean reference images for supervision. Moreover, they fail
+methods achieve superior perceptual quality, they rely on             to address the layer-specific, irreversible semantic corruption
+synthetically generated or human-labeled reference images,            caused by complex underwater distortions, underscoring the
+introducing domain gaps and optimization biases that prioritize       need for a task-driven UIE framework that prioritizes semantic
+aesthetic improvements. Consequently, these methods may               restoration over simple distortion removal.
+enhance color and contrast at the cost of distorting semantic
+features, leading to suboptimal representations for machine                              III. P ROPOSED M ETHOD
+vision tasks.
+   3) Task-Driven Methods: To better align with machine               A. Overall Framework
+vision objectives, task-driven UIE methods [38], [39], [40]              The proposed network is designed to address the irreversible
+have been explored. These approaches integrate task-specific          layer-specific corruption of semantic content in underwater
+constraints to guide enhancement toward machine-friendly              images by disentangling distortion from corrupted content and
+representations. Chen et al. [38] propose a perceptual enhance-       enhancing the latter for machine vision tasks. Our frame-
+ment model, which uses a deep enhancement model with                  work consists of three stages: (1) Pretraining a Multi-Scale
+a detection perceptor, guiding the enhancement model to               Underwater Distortion-Aware Generator (MS-UDAG) to per-
+generate detection favourable images. Liu et al. [39] develop         ceive layer-specific distortions, (2) Separating distortions from
+a bilateral constrained closed-loop adversarial enhancement           corrupted content without labeled data, and (3) Hierarchically
+module, and incorporate the coherent gradient information             enhancing the corrupted content features in a task-friendly
+of the detector to guide the enhancement towards the                  manner. The overall architecture is illustrated in Fig. 2.
+detection-pleasing direction. Yu et al. [40] propose an unsu-            We first extract the multi-scale semantic features using
+pervised task-friendly UIE framework based on disentangled            a fixed VGG network. These features are processed by
+YU et al.: TASK-DRIVEN UIE VIA HIERARCHICAL SEMANTIC REFINEMENT                                                                                            45
+
+
+
+
+Fig. 2. The overview of our proposed method. The framework is composed of three stages: (1) MS-UDAG Pre-training: The multi-scale underwater
+distortion-aware generator (MS-UDAG) is pre-trained to perceive layer-specific distortions, enabling the model to distinguish clean and distorted semantic
+features. (2) Self-Supervised Constraints: A self-supervised strategy is adopted to disentangle underwater distortions from corrupted content features without
+clean references. (3) Hierarchical Feature Enhancement: The content features are refined through our task-driven hierarchical feature enhancement to restore
+semantic integrity at different feature levels, which consist of a detail enhancement module (DEM) and a semantic enhancement module (SEM).
+
+
+
+the MS-UDAG, which is pretrained to model a distortion-                         input image X, we extract multi-scale feature representations
+aware generative prior. Specifically, MS-UDAG learns an                         using a pretrained, fixed VGG network E(·):
+identity mapping for clean features while generating anomaly
+representations for distorted underwater features. With the                                  Fal = E(Xa ),      Ful = E(Xu ),     l ∈ {1, 2, 3},          (1)
+distortion-aware prior established, due to the lack of clean
+references, we apply a self-supervised disentanglement strat-                   where Fal and Ful represent the in-air and underwater semantic
+egy to separate distortion from corrupted content through                       features at layer l, respectively.
+CLIP-based semantic constraints and identity consistency                           For in-air features Fal , MS-UDAG, denoted as G(·), learns
+enforcement. To compensate for the layer-specific irreversible                  an identity mapping such that the reconstructed image
+loss of semantic information, we then introduce a task-                         matches the original input, ensuring that clean image remain
+aware hierarchical feature enhancement module to refine the                     unchanged:
+corrupted content across feature layers. This module con-
+sists of two specialized components: the Detail Enhancement                                       X̂a = G(Fal ),     Larec = kXa − X̂a k1 .               (2)
+Module (DEM), which restores fine-grained textures through
+                                                                                Since a clean image should be preserved with high fidelity, the
+spatial-frequency fusion in shallow layers, and the Semantic
+                                                                                reconstruction loss for clean images is assigned a high weight
+Enhancement Module (SEM), which strengthens high-level
+                                                                                (λarec = 1). For underwater features Ful , MS-UDAG generates
+semantics via multi-scale contextual aggregation in deep lay-
+                                                                                an anomaly representation A, which captures the semantic
+ers. Furthermore, the task feedback prior ensures that the
+                                                                                deviations caused by underwater distortions. Unlike the clean
+enhanced results are optimally aligned with machine vision
+                                                                                image case, the reconstruction constraint for underwater image
+applications.
+                                                                                is relaxed by applying a lower weight (λurec = 0.1):
+
+                                                                                                    A = G(Ful ),      Lurec = kXu −Ak1 .                  (3)
+B. MS-UDAG Pretraining
+                                                                                   In addition to reconstruction constraints, we incorporate a
+   To establish a distortion-aware generative prior, we pre-                    similarity ranking loss to further separate clean and distorted
+train a Multi-Scale Underwater Distortion-Aware Generator                       semantic representations. Inspired by Yang et al. [35], who
+(MS-UDAG) which perceives layer-specific distortions, using                     proposed a ranking-based constraint to distinguish clean and
+a set of unpaired underwater image Xu and in-air image                          degraded semantics in terrestrial scenes, we extend and adapt
+Xa . The objective of this phase is to enable MS-UDAG                           this mechanism to the underwater domain, where distortions
+to distinguish between clean and distorted semantics at the                     are more complex and semantically entangled. In essence, the
+multiple feature levels, thereby providing a strong prior for                   goal is to ensure that the reconstructed image from clean
+subsequent disentanglement of content and distortion. For an                    semantic features is much closer to its original than that
+46                                                                                             IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+reconstructed from distorted semantic features. The ranking
+loss enforces this relative similarity constraint, formulated as:
+             Lsr = max(0, −(d(Xa , X̂a ) − d(Xu , A)) + m),              (4)
+where m is a margin parameter which is set to 1, and d(·, ·)
+measures similarity, for example:
+                                     Xa · X̂a
+                       d(Xa , X̂a ) =              .       (5)
+                                  kXa k2 · kX̂a k2
+     The final training objective for MS-UDAG is given by:
+                                                                               Fig. 3. The structure of Detail Enhancement Module (DEM), which refines
+                LMS-UDAG = Lsr + λarec Larec + λurec Lurec .             (6)   low-level content features by integrating spatial and frequency domain infor-
+                                                                               mation. Xu represents the original underwater image, fin denotes the input
+                                                                               features (the first- and second-layer semantic features), and fout denotes the
+C. Self-Supervised Disentanglement Strategy                                    enhanced features.
+   Unlike human perception, which is tolerant to certain
+degradations, machine vision models are highly sensitive to
+distortions that disrupt feature extraction and recognition pro-               features remain robust under repeated process. The distortion-
+cesses. By explicitly separating underwater distortions from                   free image Xc is reprocessed through feature extractor E(·),
+                                                                                                               l
+corrupted content, we can ensure that subsequent enhancement                   and its intermediate features Fidt are again passed through
+focuses on refining structural and semantic information, which                 MS-UDAG to generate the identity image Xidt :
+is essential for machine vision tasks. Given the absence of                                           l
+                                                                                                     Fidt = E(Xc ),    Xidt = G(Fidt
+                                                                                                                                 l
+                                                                                                                                     ).                (12)
+distortion-free underwater images, our disentanglement pro-
+cess relies on the distortion-aware prior learned by MS-UDAG,                  To ensure that the extracted content remains clean and
+enabling feature separation without the need for labeled data.                 distortion-free, we introduce two identity loss:
+   For the underwater original semantic features Ful , we intro-                               3
+                                                                                               X
+duce a distortion extractor D(·) and a content extractor C(·),                       Lidt1 =           i
+                                                                                                      Fidt − Fci 1 ,    Lidt2 = kXidt − Xc k1 .        (13)
+both comprising six residual blocks, to separately extract                                     i=1
+distortion features Fdl and corrupted content features Fcl as
+                                                                                  The overall loss for disentanglement is defined as:
+follows:
+                                                                                          Ldis = λ1 L sep + λ2 Lclip + λ3 Lidt1 + λ4 Lidt2 ,           (14)
+              Fdl = D(Ful ),     Fcl = C(Ful ),       l ∈ {1, 2, 3}.     (7)
+To ensure that the extracted features retain all necessary                     where λ1 , λ2 , λ3 and λ4 are hyperparameters, which are set to
+information, we apply an L1 loss between the sum of extracted                  1, 1, 2, and 1 respectively during training.
+features and the original semantic features:
+                               3
+                               X                                               D. Task-Aware Hierarchical Feature Enhancement
+                    L sep =           (Fdi + Fci ) − Fui 1 .             (8)      Simply removing underwater distortions is insufficient for
+                               i=1                                             optimal machine vision performance, as the distortion leads to
+ Once the content features are extracted, they are fed into                    layer-specific irreversible loss of texture details and high-level
+MS-UDAG to generate a distortion-free image Xc :                               semantic representations. To address this issue, we propose
+                                                                               a task-aware hierarchical feature enhancement module, which
+                                 Xc = G(Fcl ).                           (9)
+                                                                               aims to enhance corrupted content by targeting different layers
+Since the content remains unchanged, the semantic content                      of underwater semantic features. The content features Fcl
+in Xc should closely match that of the original input Xu . To                  are hierarchically divided into three levels: shallow, middle,
+enforce this, we introduce a CLIP-based semantic consistency                   and deep. To effectively enhance different levels of content
+constraint, leveraging the content-related property [55] of                    features, we introduce a detail enhancement module and a
+CLIP’s image encoder. Specifically, we extract features of                     semantic enhancement module to reinforce texture details and
+scale 2 to 4 from a pre-trained CLIP ResNet image encoder                      high-level semantic representations, respectively.
+(Ec (·)) for both Xc and Xu :                                                     At the shallow level, which primarily encodes fine tex-
+                                                                               tures, underwater distortions introduce color shifts and low
+       Fuclip,l = Ec (Xu ),    Fcclip,l = Ec (Xc ),    l ∈ {2, 3, 4}.   (10)   contrast that obscure details. Since such semantic loss is
+A loss is then applied in the CLIP feature space to align the                  partially irreversible, distortion removal alone cannot recover
+semantic representations of the original and the distortion-free               the fine-grained details essential for machine vision tasks.
+images:                                                                        To address this, we design a Detail Enhancement Module
+                        X4                                                     (DEM) that explicitly reconstructs high-frequency components
+                Lclip =      Fuclip,i − Fcclip,i 1 .        (11)               to enrich low-level representations, thereby benefiting down-
+                                i=2                                            stream tasks. As illustrated in Fig. 3, the original underwater
+   To further ensure stable disentanglement, we impose a iden-                 image Xu is processed by a 3 × 3 convolution and two down-
+tity consistency constraint that guarantees the extracted content              sampling operations to extract multi-scale features, which are
+YU et al.: TASK-DRIVEN UIE VIA HIERARCHICAL SEMANTIC REFINEMENT                                                                                  47
+
+
+
+                                                                                 where CE(·) denotes the cross entropy loss, T (·) denotes
+                                                                                 task network, Xenh denotes the enhanced image, and mask
+                                                                                 represents the semantic segmentation label of training data.
+
+                                                                                                       IV. E XPERIMENTS
+                                                                                 A. Implementation Details
+                                                                                    The training process is divided into three stages: MS-UDAG
+                                                                                 pretraining, self-supervised disentanglement of corrupted
+                                                                                 content and distortion, and task-aware hierarchical feature
+                                                                                 enhancement. In the first stage, we pretrain MS-UDAG using
+                                                                                 the underwater dataset UVTD [57] and the in-air dataset
+                                                                                 Flickr2K [58] that consists of high-quality images. These
+Fig. 4. The structure of Semantic Enhancement Module (SEM), which
+                                                                                 datasets are randomly cropped into 256 × 256 patches for
+strengthens high-level semantic representations by aggregating multi-scale       training. The second and third stages require only dataset
+contextual information. fin denotes the input features (the second- and third-   UVTD, with the third stage additionally utilizing its semantic
+layer semantic features), and fout denotes the enhanced features.
+                                                                                 segmentation annotations. For the first and third stages, train-
+                                                                                 ing is conducted for 50 epochs with an initial learning rate of
+                                                                                 1 × e−4 , followed by another 50 epochs where the learning
+then fed into a Hybrid Detail Enhancer (HDE) that enhances                       rate gradually decays to zero. The second stage follows a
+fine details in both spatial and frequency domains. Spatially,                   longer schedule, with an initial learning rate 1×e−4 of for 100
+global responses are suppressed via average pooling subtrac-                     epochs, which is then gradually reduced to zero over the next
+tion to highlight local variations. In the frequency domain,                     100 epochs. All experiments are implemented in PyTorch and
+a high-pass filter extracts high-frequency signals representing                  conducted on a Linux workstation equipped with an NVIDIA
+edges and fine textures. These are fused and refined through                     GeForce RTX 2070 GPU. The batch size is set to 2 for all
+an attention mechanism and then combined with the input                          three training stages, and the Adam is used for optimization.
+features to produce a detail-enhanced representation that is                        Our framework adopts semantic segmentation as the guiding
+both texture-aware and semantically informative.                                 task during training to align enhancement with semantic
+   At the deep level, the content is irreversibly affected by                    recovery objectives. To validate generalization capability, we
+scattering, resulting in semantic blurring and loss of structural                directly evaluate the enhanced images on object detection and
+clarity. Therefore, we propose the Semantic Enhancement                          salient object detection tasks without any fine-tuning. During
+Module (SEM) to strengthen high-level semantic represen-                         testing, the network first extracts multi-scale content features
+tation by capturing multi-scale contextual dependencies. As                      from the input image, applies hierarchical enhancement via
+shown in Fig. 4, the SEM consists of three parallel branches:                    DEM and SEM, and finally generates the distortion-free result
+a local context branch that refines fine-grained features using                  through MS-UDAG.
+standard convolution operations, a mid-level context branch
+that strengthens structural details using atrous convolutions
+                                                                                 B. Datasets and Metrics
+to expand receptive fields, and a global context branch that
+models long-range dependencies via Global Average Pooling                           To comprehensively evaluate the effectiveness of our
+(GAP) and attention mechanism. The outputs from these                            approach on underwater machine vision tasks, we conduct
+branches are adaptively weighted through softmax normaliza-                      experiments on semantic segmentation, object detection, and
+tion, ensuring optimal semantic enhancement. For mid-level                       salient object detection. For all three tasks, we validate our
+content features, we apply both DEM and SEM to ensure a                          method on the multi-label dataset UVTD, which consists of
+balance between detail texture and semantic consistency.                         5,380 underwater images. In addition, for semantic segmenta-
+   The hierarchical features of each level of enhancement are                    tion, we further evaluate on the dataset SUIM, which contains
+then processed by MS-UDAG to generate the final enhanced                         1,634 underwater images along with corresponding segmenta-
+image. To ensure that the enhancement of content features                        tion labels. For salient object detection, we additionally use the
+aligns with the requirements of downstream tasks, we input                       dataset USOD10K [59], which consists of 10,255 underwater
+the enhanced images into a task network to compute task-                         images with corresponding saliency annotations.
+aware loss, guiding the training of the hierarchical feature                        For object detection, we adopt mAP50 (mean Average
+enhancement stage. In this paper, we choose semantic seg-                        Precision at IoU= 0.5) and mAP@0.5:0.95 (mean Average
+mentation as the guiding task because it provides dense,                         Precision over IoU thresholds from 0.5 to 0.95) to measure the
+pixel-wise supervision that simultaneously constrains local                      average precision. For semantic segmentation, we use mean
+details and global semantics, effectively aligning with our hier-                Intersection over Union (mIoU) and mean Pixel Accuracy
+archical refinement strategy. Specifically, we use U-Net [56]                    (mPA) to evaluate segmentation performance. mIoU is a
+as the segmentation network and compute the cross-entropy                        widely used metric that captures the degree of overlap between
+loss:                                                                            predictions and ground truth, making it a robust indicator
+                                                                                 of segmentation quality. For salient object detection, we uti-
+                      Ltask = CE(T (Xenh ), mask).                      (15)     lize F-measure, E-measure, S-measure, and Mean Absolute
+48                                                                                          IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+
+Fig. 5. Visualization results of our proposed method, nine comparison algorithms, and raw images on semantic segmentation. We apply the enhanced images
+and raw images to the U-Net network and obtain the corresponding segmentation results. Our method achieves more accurate segmentation, particularly for
+small and densely clustered objects, while preserving fine details and ensuring better semantic consistency.
+
+
+                             TABLE I
+                                                                                                         TABLE II
+         S EMANTIC S EGMENTATION ACCURACY OF D IFFERENT
+                   M ETHODS ON U-N ET N ETWORK                                        S EMANTIC S EGMENTATION ACCURACY OF D IFFERENT
+                                                                                            M ETHODS ON D EEP L AB V3 + N ETWORK
+
+
+
+
+Error (MAE) to comprehensively assess saliency detection                     are traditional UIE methods, as well as FGAN [23], U-Trans
+performance. The F-measure is computed as a weighted har-                    [28], TUDA [29], TACL [39], TFUIE [40], and PSPL [47]
+monic mean of precision and recall. The E-measure quantifies                 which are deep learning-based UIE methods. Among these,
+saliency error by considering the Euclidean distance between                 TACL and TFUIE are task-friendly approaches designed for
+predicted saliency regions and corresponding ground truth                    machine vision tasks. Additionally, our experimental analysis
+regions. The S-measure evaluates structural similarity between               included a comparison with UniRestore [50], a task-driven
+the detected saliency maps and the ground truth. Lastly, MAE                 method for terrestrial image restoration. By conducting exten-
+measures the mean absolute difference between predicted and                  sive evaluations, we aim to demonstrate the superiority of
+ground-truth saliency maps at the pixel level.                               our method in facilitating high-level visual understanding in
+                                                                             underwater environments.
+C. Comparison With State-of-the-Art Methods                                     1) Comparison on Semantic Segmentation: To evaluate
+  In this section, we compare our method with various meth-                  the effectiveness of our method in semantic segmentation
+ods across multiple machine vision tasks and datasets. The                   task, we compare its performance using two widely adopted
+compared methods include UDCP [60] and Fusion [6], which                     segmentation networks: U-Net [56] and DeepLabv3 + [61].
+YU et al.: TASK-DRIVEN UIE VIA HIERARCHICAL SEMANTIC REFINEMENT                                                                    49
+
+
+
+                                                              TABLE III
+                                 O BJECT D ETECTION ACCURACY OF D IFFERENT M ETHODS ON SSD N ETWORK
+
+
+
+
+                                                               TABLE IV
+                              O BJECT D ETECTION ACCURACY OF D IFFERENT M ETHODS ON YOLOV 8 N ETWORK
+
+
+
+
+The results are presented in Table I and Table II, respectively.      forming both the original images and existing UIE methods
+As shown in the tables, our method consistently achieves the          in detection accuracy. Specifically, our method improves
+best performance across both the UVTD and SUIM datasets.              mAP50 and mAP@0.5:0.95 by 4.4% and 1.8%, respectively,
+Specifically, on the UVTD dataset, our approach improves              on SSD, and by 2.4% and 1.0% on YOLOv8. Except
+mIoU by 4.6% on U-Net and 5.5% on DeepLabv3 + compared                for the task-friendly method TFUIE, all other enhancement
+to using the raw images. On the SUIM dataset, we achieve              methods perform worse than the raw images on YOLOv8,
+gains of 2.8% and 2.9%, respectively. Some existing methods,          highlighting that human perceptual-driven UIE methods can
+such as TACL and FGAN, perform worse than the raw images              degrade task-relevant features essential for machine vision.
+across all metrics, indicating that they fail to preserve the fine-   In contrast, our approach effectively enhances the structural
+grained imformation essential for segmentation.                       integrity of objects, preserving crucial details for detection
+                                                                      models.
+   Visualization results on the UVTD test set are shown in
+                                                                         The visualization results on the UVTD test set are presented
+Fig. 5, where our method demonstrates superior segmentation
+                                                                      in Fig. 6, where our method demonstrates improvements
+accuracy, particularly in challenging cases involving small and
+                                                                      in detecting small objects. In contrast, conventional UIE
+densely clustered fish groups. Other methods struggle with
+                                                                      approaches struggle with small-object detection, often leading
+complex backgrounds and small-object segmentation, whereas
+                                                                      to missed detections. By enhancing structural clarity and fine-
+our approach effectively enhances essential features, allowing
+                                                                      grained features, our method facilitates more accurate object
+for more precise segmentation in challenging scenes.
+                                                                      localization and recognition.
+   2) Comparison on Object Detection: We also evaluate our               3) Comparison on Salient Object Detection: We further
+method on object detection using two widely used detec-               evaluate the effectiveness of our method on salient object
+tion networks: YOLOv8 and SSD [62]. The precision and                 detection using U2 -Net [63], comparing its performance on
+mean average precision (mAP) for different object cate-               the UVTD and USOD10K datasets. The results are presented
+gories are reported in Table III and Table IV, respectively.          in Table V, where our method consistently achieves supe-
+As shown in the results, our method consistently achieves             rior performance across all evaluation metrics. Specifically,
+superior performance across all object categories, outper-            our approach improves the F-measure by 1.2% on UVTD
+50                                                                                           IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+
+Fig. 6. Visualization results of our proposed method, nine comparison algorithms, and raw images on object detection. We apply the enhanced images and
+raw images to the SSD network and obtain the corresponding results. Our method effectively enhances object boundaries and improves the detection of small
+targets. Comparison methods struggle with small-object detection, often leading to missed detections (indicated as “Missing” in the figure).
+
+                                                                       TABLE V
+                              S ALIENT O BJECT D ETECTION ACCURACY OF D IFFERENT M ETHODS ON U 2 -N ET N ETWORK
+
+
+
+
+and 2.2% on USOD10K, demonstrating its effectiveness in                       of challenging regions, ensuring better segmentation of low-
+enhancing saliency features crucial for accurate detection. The               contrast and visually ambiguous objects.
+raw images still achieve competitive performance, outperform-
+ing most compared UIE methods. This suggests that human
+perception-oriented enhancement methods fail to consistently                  D. Ablation Studies on Loss Functions of Disentanglement
+improve underwater machine vision tasks, as they may alter                       To evaluate the contribution of each loss function in the
+task-critical features rather than preserving essential visual                disentanglement stage, we conducted ablation studies by
+cues for computational models.                                                progressively adding the three losses: CLIP-based semantic
+   The visualization results on the UVTD test set are shown in                consistency loss (Lclip ), separation loss (L sep ), and identity
+Fig. 7. As seen in the figure, when targets suffer from severe                loss (Lidt ). The results on UVTD dataset are summarized in
+blurring or exhibit colors similar to the background (e.g., the               Table VI, measured on three downstream tasks: underwater
+fish fin in the first sample), most existing methods fail to accu-            semantic segmentation (USS), underwater object detection
+rately detect the full object. In contrast, our method effectively            (UOD), and underwater salient object detection (USOD).
+enhances fine details, allowing for more precise recognition                  Model A omits the disentanglement and directly feeds the
+YU et al.: TASK-DRIVEN UIE VIA HIERARCHICAL SEMANTIC REFINEMENT                                                                                            51
+
+
+
+
+Fig. 7. Visualization results of our proposed method, nine comparison algorithms, and raw images on salient object detection. We apply the enhanced images
+and raw images to the U2 -Net model and obtain the corresponding results. Our method effectively preserves fine details and enhances the visibility of salient
+objects, particularly in challenging cases where the target is heavily blurred or has a color similar to the background.
+
+                                                                         TABLE VI
+                                         A BLATION E XPERIMENTS ON L OSS F UNCTIONS OF D ISENTANGLEMENT
+
+
+
+
+                                                                         TABLE VII
+                                         A BLATION E XPERIMENTS ON H IERARCHICAL F EATURE E NHANCEMENT
+
+
+
+
+raw VGG features into the hierarchical enhancement mod-                         0.3%, and 0.2%, respectively. Finally, adding Lidt (Ours)
+ules. This baseline yields the lowest performance across                        stabilizes the disentanglement process, yielding the highest
+all tasks, demonstrating that the raw features still contain                    overall performance. In particular, USS mIoU increases by
+severe distortion–content entanglement. Model B introduces                      0.5%, UOD mAP50 increases by 0.2%, and USOD F-measure
+Lclip , which enforces semantic consistency. As a result, USS,                  improves by 0.4% compared to Model C.
+UOD, and USOD performance improve by 1.6%, 0.4%, and
+0.7% in mIoU, mAP50 and F-measure, respectively. Model                          E. Ablation Studies on Hierarchical Feature Enhancement
+C further incorporates L sep , which leads to another consistent                  We conducted ablation studies to validate the effectiveness
+improvement: mIoU, mAP50 , and F-measure increase by 0.6%                       of the Detail Enhancement Module (DEM) and the Semantic
+52                                                                                           IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+
+Fig. 8. Visualization of semantic recovery across different categories. The enhanced results exhibit clearer object boundaries and more coherent semantic
+representations, validating the effectiveness of our semantic recovery.
+
+
+
+Enhancement Module (SEM) in underwater machine vision                         including fish, diver, shipwreck, plants, and other marine
+tasks. The experimental results on UVTD dataset are presented                 organisms. As shown in the figure, our method produces
+in Table VII, evaluated across three tasks:USS, UOD and                       enhanced images with significantly clearer object contours,
+USOD. Model A, which only disentangles distortions without                    richer textures, and more distinguishable semantic boundaries
+enhancing the corrupted content, demonstrates suboptimal                      compared to the degraded inputs. Moreover, the corresponding
+performance across all tasks. This indicates that distortion                  semantic features reveal that both shallow and deep semantic
+removal alone are insufficient for improving machine vision                   representations are effectively restored. Shallow-layer features
+accuracy. Incorporating SEM (Model B) leads to performance                    capture refined edge and texture details, while deeper layers
+improvements in both USS and USOD tasks, with mIoU                            exhibit improved semantic coherence and object separability.
+and F-measure increasing by 2.5% and 0.8%, respectively,                      These results demonstrate that our approach not only improves
+suggesting that semantic enhancement effectively strengthens                  visual clarity but also successfully restores the underlying
+high-level feature representations. Introducing DEM (Model                    semantic consistency crucial for downstream recognition tasks.
+C) also enhances performance, particularly in USS and USOD,
+where mIoU and F-measure improve by 3.1% and 1.1%,
+                                                                              G. Analysis of MS-UDAG’s Distortion-Aware Capability
+respectively, highlighting the importance of detail enhance-
+ment in segmentation and salient object detection.                               To evaluate MS-UDAG’s ability to distinguish between
+   When both DEM and SEM are integrated (Ours), the                           clean and degraded underwater features, we visualize feature
+model achieves the best performance across all evaluation                     responses to different inputs, as shown in Fig. 9. The first row
+metrics. Specifically, in USS, mIoU and mPA improve by                        presents input images, followed by feature maps from the first
+6.8% and 6.4% compared to the Model A. In UOD, mAP50                          three VGG layers, with the last row showing reconstructed
+and mAP@0.5:0.95 increase by 1.2% and 0.9%, respec-                           outputs from MS-UDAG. Both real and synthetic underwater
+tively. In USOD, F-measure, S-measure, and E-measure reach                    images produce abnormal feature representations, indicating
+their highest values, while MAE is minimized. These results                   that MS-UDAG responds specifically to underwater distortions
+demonstrate the complementary effects of DEM and SEM in                       rather than scene content. Furthermore, despite the visual
+enhancing multi-scale features, enabling superior performance                 improvements of prior enhancement methods, their outputs
+across various underwater machine vision tasks.                               still induce abnormal feature responses and fail to yield
+                                                                              correct reconstructions, suggesting that residual distortions
+                                                                              remain and are captured by MS-UDAG. This highlights the
+F. Visualization of Semantic Recovery Across Categories                       high sensitivity of MS-UDAG to distortion-specific cues. In
+  To provide an intuitive understanding of semantic recovery,                 contrast, our enhanced results produce clean reconstructions,
+we present in Fig. 8 both image-level and feature-level com-                  indicating that our self-supervised disentanglement effectively
+parisons across representative underwater semantic categories,                isolates distortion components.
+YU et al.: TASK-DRIVEN UIE VIA HIERARCHICAL SEMANTIC REFINEMENT                                                                                             53
+
+
+
+
+Fig. 9. Feature visualization to validate the distortion-aware capability of MS-UDAG. The first row shows input images Xin , the second to fourth rows are
+the first three layers of features extracted by pretrained VGG, and the final row presents output images Xout from MS-UDAG. The comparison demonstrates
+that MS-UDAG consistently produces abnormal responses for images with residual distortions, even after enhancement by general methods, while generating
+clean reconstructions only when provided with distortion-free features.
+
+
+
+
+Fig. 10. Visual comparison of enhancement. (a) Original underwater image Xu , (b) reconstructed image Xc generated from corrupted content features in the
+disentanglement stage, (c) final result Xenh of our method, (d) TACL [39], (e) TFUIE [40], and (f) PSPL [47]. The results show that our method effectively
+enhances texture details and strengthens semantic representation, leading to richer textures and better target visibility in challenging underwater conditions.
+
+
+
+H. Analysis of Image-Level Visualization                                         irreversible degradation caused by underwater distortions,
+                                                                                 leading to the loss of fine details, especially in highly dis-
+   To intuitively demonstrate the superiority of our proposed                    torted or complex regions. Our task-aware hierarchical feature
+method at the image level, we present a subjective com-                          enhancement module effectively mitigates these issues by
+parison of the enhancement results, as shown in Fig. 10.                         incorporating a layer-specific enhancement strategy, ensuring
+The figure consists of three sets of images: (a) original                        clearer object boundaries and finer textures, and making
+underwater images, (b) reconstructed images generated from                       objects more distinguishable and preserving high-level seman-
+corrupted content features, and (c) final results produced                       tic structures. These improvements demonstrate that our
+after enhancing the corrupted content using our task-aware                       approach is particularly well-suited for complex and highly
+hierarchical feature enhancement module. While (b) exhibits                      distorted underwater environments, providing significant ben-
+improved visual quality over (a), it still suffers from                          efits for machine vision tasks.
+54                                                                                            IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+                                                                               This demonstrates that our method not only mitigates degrada-
+                                                                               tion but also reinforces high-level semantics, ensuring robust
+                                                                               feature extraction for machine vision tasks.
+
+                                                                               J. Complexity Comparison
+                                                                                  To assess the computational efficiency of the proposed
+                                                                               framework, we compare the number of parameters (M),
+                                                                               floating-point operations (FLOPs, G), and inference speed
+                                                                               (FPS) of our model with representative learning-based meth-
+                                                                               ods on a single NVIDIA RTX 2070 GPU. As shown in
+                                                                               Table VIII, lightweight methods such as PSPL and FGAN
+                                                                               achieve slightly lower computational costs and higher FPS.
+                                                                               However, this efficiency comes at the expense of performance.
+                                                                               In particular, FGAN exhibits the lowest segmentation and
+                                                                               detection accuracy among all compared methods. In contrast,
+                                                                               our framework strikes a balanced trade-off. While introducing
+                                                                               modest computational overhead, it yields substantial gains in
+                                                                               semantic restoration and task performance, demonstrating its
+                                                                               practicality for real-world underwater vision systems where
+                                                                               reliability and interpretability are critical.
+
+Fig. 11. Feature visualization of hierarchical enhancement. The first row                                 V. C ONCLUSION
+presents the initial semantic features, the second and third rows show the        In this work, we propose a novel task-driven UIE frame-
+separated distortion and corrupted content features, and the fourth row
+illustrates the enhanced content features after our enhancement. The results   work designed to improve machine vision performance.
+indicate that DEM improves fine-detail representation in shallow features,     Unlike conventional methods that focus on distortion removal,
+while SEM enhances semantic structures in deep layers.                         our approach redefines enhancement as semantic recovery,
+                               TABLE VIII
+                                                                               addressing the irreversible layer-specific semantic corruption
+      C OMPUTATIONAL C OMPLEXITY AND I NFERENCE E FFICIENCY
+                                                                               by enhancing task-critical features. To achieve this, we intro-
+         C OMPARISON ON A S INGLE NVIDIA RTX 2070 GPU                          duce a multi-scale underwater distortion-aware generator to
+                                                                               establish a distortion-sensitive generative prior, enabling the
+                                                                               model to distinguish between clean and degraded semantic
+                                                                               features. Building on this prior, we further propose a self-
+                                                                               supervised disentanglement strategy, leveraging CLIP-based
+                                                                               semantic constraints and identity consistency to separate dis-
+                                                                               tortions from corrupted content without labeled data. Finally,
+                                                                               a task-aware hierarchical feature enhancement module is
+                                                                               designed to refine the disentangled content features, ensuring
+                                                                               better feature alignment for machine vision tasks. Extensive
+                                                                               experiments demonstrate the superiority of our method under
+                                                                               challenging underwater conditions. Our framework offers a
+I. Analysis of Feature-Level Visualization                                     new perspective on UIE by establishing a link between image
+                                                                               restoration and high-level vision performance. In future work,
+   To further investigate the effects of our hierarchical feature              we plan to further improve perceptual quality to better main-
+enhancement, we visualize feature representations at different                 tain human visual preferences while enhancing machine-vision
+levels, as shown in Fig. 11. The figure consists of four rows,                 performance. In addition, we plan to extend our framework to
+each displaying three progressively deeper feature layers. The                 video enhancement by modeling temporal dependencies and
+first row presents the initially extracted semantic features,                  motion consistency across frames, ensuring temporally stable
+the second and third rows show the separated distortion                        restoration in dynamic underwater scenes and broadening its
+features and corrupted content features, and the fourth row                    applicability to real-time underwater robotics and video-based
+illustrates the enhanced content features after our hierarchi-                 perception tasks.
+cal refinement. The figure shows that underwater distortions
+irreversibly degrade shallow feature details, which remain                                                  R EFERENCES
+lost even after distortion separation. For instance, the red-
+                                                                               [1]   L. Chen, Y. Xie, Y. Li, Q. Xu, and J. Dong, “CWSCNet: Channel-
+boxed region reveals eroded fine structures crucial for machine                      weighted skip connection network for underwater object detection,”
+vision. Our DEM restores edge clarity and fine details, enhanc-                      IEEE Trans. Image Process., vol. 33, pp. 5206–5218, 2024.
+ing object contours. In deeper features, distortion removal                    [2]   P. W. Patil, O. Thawakar, A. Dudhane, and S. Murala, “Motion
+                                                                                     saliency based generative adversarial network for underwater moving
+alone is insufficient for semantic enhancement, but our SEM                          object segmentation,” in Proc. IEEE Int. Conf. Image Process. (ICIP),
+strengthens target emphasis, improving object representation.                        Sep. 2019, pp. 1565–1569.
+YU et al.: TASK-DRIVEN UIE VIA HIERARCHICAL SEMANTIC REFINEMENT                                                                                              55
+
+
+
+[3]  J. Jin, Q. Jiang, Q. Wu, B. Xu, and R. Cong, “Underwater salient object     [25] G. Han, M. Wang, H. Zhu, and C. Lin, “UIEGAN: Adversarial learning-
+     detection via dual-stage self-paced learning and depth emphasis,” IEEE           based photorealistic image enhancement for intelligent underwater
+     Trans. Circuits Syst. Video Technol., vol. 35, no. 3, pp. 2147–2160,             environment perception,” IEEE Trans. Geosci. Remote Sens., vol. 61,
+     Mar. 2025.                                                                       2023, Art. no. 5611514.
+[4] A. S. Abdul Ghani and N. A. Mat Isa, “Enhancement of                         [26] D. Liang, J. Chu, Y. Cui, Z. Zhai, and D. Wang, “NPT-UL: An underwa-
+     low quality underwater image through integrated global and local                 ter image enhancement framework based on nonphysical transformation
+     contrast correction,” Appl. Soft Comput., vol. 37, pp. 332–344,                  and unsupervised learning,” IEEE Trans. Geosci. Remote Sens., vol. 62,
+     Dec. 2015.                                                                       2024, Art. no. 5608819.
+[5] C. Ancuti, C. O. Ancuti, T. Haber, and P. Bekaert, “Enhancing under-         [27] M. Li, Y. Lin, L. Shen, Z. Wang, K. Wang, and Z. Wang, “Human
+     water images and videos by fusion,” in Proc. IEEE Conf. Comput. Vis.             perceptual quality driven underwater image enhancement framework,”
+     Pattern Recognit., Jun. 2012, pp. 81–88.                                         IEEE Trans. Geosci. Remote Sens., vol. 60, 2022, Art. no. 5634415.
+[6] C. O. Ancuti, C. Ancuti, C. De Vleeschouwer, and P. Bekaert, “Color          [28] L. Peng, C. Zhu, and L. Bian, “U-shape transformer for under-
+     balance and fusion for underwater image enhancement,” IEEE Trans.                water image enhancement,” IEEE Trans. Image Process., vol. 32,
+     Image Process., vol. 27, no. 1, pp. 379–393, Jan. 2018.                          pp. 3066–3079, 2023.
+[7] X. Fu, P. Zhuang, Y. Huang, Y. Liao, X.-P. Zhang, and X. Ding, “A            [29] Z. Wang, L. Shen, M. Xu, M. Yu, K. Wang, and Y. Lin, “Domain
+     retinex-based enhancing approach for single underwater image,” in Proc.          adaptation for underwater image enhancement,” IEEE Trans. Image
+     IEEE Int. Conf. Image Process. (ICIP), Oct. 2014, pp. 4572–4576.                 Process., vol. 32, pp. 1442–1457, 2023.
+[8] J. Hu, Q. Jiang, R. Cong, W. Gao, and F. Shao, “Two-branch deep neural       [30] J. Li, K. A. Skinner, R. M. Eustice, and M. Johnson-Roberson,
+     network for underwater image enhancement in HSV color space,” IEEE               “WaterGAN: Unsupervised generative network to enable real-time color
+     Signal Process. Lett., vol. 28, pp. 2152–2156, 2021.                             correction of monocular underwater images,” IEEE Robot. Autom. Lett.,
+[9] M. S. Hitam, W. N. J. H. W. Yussof, E. A. Awalludin, and Z. Bachok,               vol. 3, no. 1, pp. 387–394, Jan. 2018.
+     “Mixture contrast limited adaptive histogram equalization for underwa-      [31] C. Li et al., “An underwater image enhancement benchmark dataset and
+     ter image enhancement,” in Proc. Int. Conf. Comput. Appl. Technol.               beyond,” IEEE Trans. Image Process., vol. 29, pp. 4376–4389, 2020.
+     (ICCAT), Jan. 2013, pp. 1–5.                                                [32] D. Liu, B. Wen, J. Jiao, X. Liu, Z. Wang, and T. S. Huang, “Connecting
+[10] C. Li, J. Guo, C. Guo, R. Cong, and J. Gong, “A hybrid method                    image denoising and high-level vision tasks via deep learning,” IEEE
+     for underwater image correction,” Pattern Recognit. Lett., vol. 94,              Trans. Image Process., vol. 29, pp. 3695–3706, 2020.
+     pp. 62–67, Jul. 2017.                                                       [33] T. Son, J. Kang, N. Kim, S. Cho, and S. Kwak, “URIE: Universal image
+[11] J. Yuan, W. Cao, Z. Cai, and B. Su, “An underwater image vision                  enhancement for visual recognition in the wild,” in Proc. Eur. Conf.
+     enhancement algorithm based on contour bougie morphology,” IEEE                  Comput. Vis. (ECCV), Aug. 2020, pp. 749–765.
+     Trans. Geosci. Remote Sens., vol. 59, no. 10, pp. 8117–8128, Oct. 2021.     [34] V. Sharma, A. Diba, D. Neven, M. S. Brown, L. V. Gool, and
+[12] D. Berman, D. Levy, S. Avidan, and T. Treibitz, “Underwater single               R. Stiefelhagen, “Classification-driven dynamic image enhancement,”
+     image color restoration using haze-lines and a new quantitative dataset,”        in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit., Jun. 2018,
+     IEEE Trans. Pattern Anal. Mach. Intell., vol. 43, no. 8, pp. 2822–2837,          pp. 4033–4041.
+     Aug. 2021.                                                                  [35] Z. Yang et al., “Visual recognition-driven image restoration for multiple
+[13] Y.-T. Peng and P. C. Cosman, “Underwater image restoration based on              degradation with intrinsic semantics recovery,” in Proc. IEEE Conf.
+     image blurriness and light absorption,” IEEE Trans. Image Process.,              Comput. Vis. Pattern Recognit. (CVPR), Jun. 2023, pp. 14059–14070.
+     vol. 26, no. 4, pp. 1579–1594, Apr. 2017.                                   [36] K. A. Hashmi, G. Kallempudi, D. Stricker, and M. Z. Afzal,
+[14] C.-Y. Li, J.-C. Guo, R.-M. Cong, Y.-W. Pang, and B. Wang, “Underwater            “FeatEnHancer: Enhancing hierarchical features for object detection and
+     image enhancement by dehazing with minimum information loss and                  beyond under low-light vision,” in Proc. IEEE/CVF Int. Conf. Comput.
+     histogram distribution prior,” IEEE Trans. Image Process., vol. 25,              Vis. (ICCV), Oct. 2023, pp. 6702–6712.
+     no. 12, pp. 5664–5677, Dec. 2016.                                           [37] J.-Y. Zhu, T. Park, P. Isola, and A. A. Efros, “Unpaired image-to-image
+[15] W. Song, Y. Wang, D. Huang, A. Liotta, and C. Perra, “Enhancement                translation using cycle-consistent adversarial networks,” in Proc. IEEE
+     of underwater images with statistical model of background light and              Int. Conf. Comput. Vis. (ICCV), Oct. 2017, pp. 2223–2232.
+     optimization of transmission map,” IEEE Trans. Broadcast., vol. 66,         [38] L. Chen et al., “Perceptual underwater image enhancement with deep
+     no. 1, pp. 153–169, Mar. 2020.                                                   learning and physical priors,” IEEE Trans. Circuits Syst. Video Technol.,
+[16] A. Saleem, S. Paheding, N. Rawashdeh, A. Awad, and N. Kaur,                      vol. 31, no. 8, pp. 3078–3092, Aug. 2021.
+     “A non-reference evaluation of underwater image enhancement meth-           [39] R. Liu, Z. Jiang, S. Yang, and X. Fan, “Twin adversarial contrastive
+     ods using a new underwater image dataset,” IEEE Access, vol. 11,                 learning for underwater image enhancement and beyond,” IEEE Trans.
+     pp. 10412–10428, 2023.                                                           Image Process., vol. 31, pp. 4922–4936, 2022.
+[17] D. Akkaynak and T. Treibitz, “Sea-thru: A method for removing water         [40] M. Yu, L. Shen, Z. Wang, and X. Hua, “Task-friendly underwater image
+     from underwater images,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern            enhancement for machine vision applications,” IEEE Trans. Geosci.
+     Recognit. (CVPR), Jun. 2019, pp. 1682–1691.                                      Remote Sens., vol. 62, 2024, Art. no. 5601014.
+[18] J. Xie, G. Hou, G. Wang, and Z. Pan, “A variational framework for           [41] A. Radford et al., “Learning transferable visual models from natural
+     underwater image dehazing and deblurring,” IEEE Trans. Circuits Syst.            language supervision,” in Proc. Int. Conf. Mach. Learn. (ICML), Jul.
+     Video Technol., vol. 32, no. 6, pp. 3514–3526, Jun. 2022.                        2021, pp. 8748–8763.
+[19] Y. Wang, H. Liu, and L.-P. Chau, “Single underwater image restoration       [42] W. Zhang, Q. Liu, H. Lu, J. Wang, and J. Liang, “Underwater
+     using adaptive attenuation-curve prior,” IEEE Trans. Circuits Syst. I,           image enhancement via wavelet decomposition fusion of advantage
+     Reg. Papers, vol. 65, no. 3, pp. 992–1002, Mar. 2018.                            contrast,” IEEE Trans. Circuits Syst. Video Technol., vol. 35, no. 8,
+[20] J. S. Jaffe, “Computer modeling and the design of optimal underwater             pp. 7807–7820, Aug. 2025.
+     imaging systems,” IEEE J. Ocean. Eng., vol. 15, no. 2, pp. 101–111,         [43] Q. Jiang, Y. Kang, Z. Wang, W. Ren, and C. Li, “Perception-driven
+     Apr. 1990.                                                                       deep underwater image enhancement without paired supervision,” IEEE
+[21] C. Li, S. Anwar, J. Hou, R. Cong, C. Guo, and W. Ren, “Underwater                Trans. Multimedia, vol. 26, pp. 4884–4897, 2024.
+     image enhancement via medium transmission-guided multi-color space          [44] Z. Cheng, G. Fan, J. Zhou, M. Gan, and C. L. P. Chen, “FDCE-Net:
+     embedding,” IEEE Trans. Image Process., vol. 30, pp. 4985–5000,                  Underwater image enhancement with embedding frequency and dual
+     2021.                                                                            color encoder,” IEEE Trans. Circuits Syst. Video Technol., vol. 35, no. 2,
+[22] J. Yin, Y. Wang, B. Guan, X. Zeng, and L. Guo, “Unsupervised                     pp. 1728–1744, Feb. 2025.
+     underwater image enhancement based on disentangled representations          [45] Y. Li, Z. Mi, Y. Wang, S. Jiang, and X. Fu, “TAFormer: A transmission-
+     via double-order contrastive loss,” IEEE Trans. Geosci. Remote Sens.,            aware transformer for underwater image enhancement,” IEEE Trans.
+     vol. 62, 2024, Art. no. 4201815.                                                 Circuits Syst. Video Technol., vol. 35, no. 1, pp. 601–616, Jan. 2025.
+[23] M. J. Islam, Y. Xia, and J. Sattar, “Fast underwater image enhancement      [46] Y. Lin, J. Hou, X. Lyu, Q. Zhao, and D. Meng, “Enhancing underwater
+     for improved visual perception,” IEEE Robot. Autom. Lett., vol. 5, no. 2,        imaging with 4-D light fields: Dataset and method,” IEEE J. Sel.
+     pp. 3227–3234, Apr. 2020.                                                        Topics Signal Process., early access, Jul. 16, 2025, doi: 10.1109/
+[24] Z. Jiang, Z. Li, S. Yang, X. Fan, and R. Liu, “Target oriented perceptual        JSTSP.2025.3589758.
+     adversarial fusion network for underwater image enhancement,” IEEE          [47] Y. Liu, Q. Jiang, X. Li, T. Luo, and W. Ren, “Toward better than
+     Trans. Circuits Syst. Video Technol., vol. 32, no. 10, pp. 6584–6598,            pseudo-reference in underwater image enhancement,” IEEE Trans.
+     Oct. 2022.                                                                       Image Process., vol. 34, pp. 6168–6179, 2025.
+56                                                                                               IEEE TRANSACTIONS ON IMAGE PROCESSING, VOL. 35, 2026
+
+
+
+[48] J. Cao, W. Peng, Y. Liu, J. Dong, P. Le Callet, and S. Kwong,                                          Liquan Shen received the B.S. degree in automation
+     “ERD: Encoder-residual-decoder neural network for underwater image                                     control from Henan Polytechnic University, Henan,
+     enhancement,” IEEE Trans. Circuits Syst. Video Technol., vol. 35, no. 9,                               China, in 2001, and the M.E. and Ph.D. degrees
+     pp. 8958–8972, Sep. 2025.                                                                              in communication and information systems from
+[49] B. Li, X. Peng, Z. Wang, J. Xu, and D. Feng, “AOD-Net: All-in-one                                      Shanghai University, Shanghai, China, in 2005 and
+     dehazing network,” in Proc. IEEE Int. Conf. Comput. Vis. (ICCV), Oct.                                  2008, respectively. Since 2008, he has been a Fac-
+     2017, pp. 4780–4788.                                                                                   ulty Member with the School of Communication
+[50] I.-H. Chen, W.-T. Chen, Y.-W. Liu, Y.-C. Chiang, S.-Y. Kuo, and                                        and Information Engineering, Shanghai University,
+     M.-H. Yang, “UniRestore: Unified perceptual and task-oriented image                                    where he is currently a Professor. From 2013 to
+     restoration model using diffusion prior,” in Proc. IEEE/CVF Conf.                                      2014, he was with the Department of Electrical
+     Comput. Vis. Pattern Recognit. (CVPR), Jun. 2025, pp. 17969–17979.                                     and Computer Engineering, University of Florida,
+[51] J. Kim, J. Oh, and K. M. Lee, “Beyond image super-resolution for             Gainesville, FL, USA, as a Visiting Professor. He has authored or co-
+     image recognition with task-driven perceptual loss,” in Proc. IEEE Conf.     authored more than 100 refereed technical papers in international journals and
+     Comput. Vis. Pattern Recognit. (CVPR), Jun. 2024, pp. 2651–2661.             conferences in the field of video coding and image processing, and also holds
+[52] Z. Zhu, J. Hou, H. Liu, H. Zeng, and J. Hou, “Learning efficient and         ten patents in the areas of image or video coding and communications. His
+     effective trajectories for differential equation-based image restoration,”   research interests include versatile video coding (VVC), perceptual coding,
+     IEEE Trans. Pattern Anal. Mach. Intell., vol. 47, no. 10, pp. 9150–9168,     video codec optimization, 3DTV, and video quality assessment.
+     Oct. 2025.
+[53] J. Hou, Z. Zhu, J. Hou, H. Liu, H. Zeng, and H. Yuan, “Global structure-
+     aware diffusion process for low-light image enhancement,” in Proc. Adv.
+     Neural Inform. Process. Syst., 2023, pp. 79734–79747.
+[54] X. Lyu and J. Hou, “Enhancing low-light light field images with a deep
+     compensation unfolding network,” IEEE Trans. Image Process., vol. 33,
+     pp. 4131–4144, 2024.
+[55] J. Cheng, D. Liang, and S. Tan, “Transfer CLIP for generalizable image                                Yihan Yu received the B.S. degree from the School
+     denoising,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR),                                of Information Science and Engineering, Shandong
+     Jun. 2024, pp. 25974–25984.                                                                           University, Shanghai, Qingdao, China, in 2023,
+[56] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional net-                                   where he is currently pursuing the M.E. degree with
+     works for biomedical image segmentation,” in Proc. 18th Int. Conf.                                    the Communication and Information Systems Lab-
+     Med. Image Comput. Comput.-Assist. Intervent., 2015, pp. 234–241.                                     oratory. His research interests include underwater
+[57] Z. Wang et al., “UVTD: A large-scale multilabel data set for under-                                   image/video enhancement, dehazing, deraining, and
+     water vision tasks,” IEEE J. Ocean. Eng., vol. 50, no. 2, pp. 898–918,                                super-resolution.
+     Apr. 2025.
+[58] E. Agustsson and R. Timofte, “NTIRE 2017 challenge on single image
+     super-resolution: Dataset and study,” in Proc. IEEE Conf. Comput. Vis.
+     Pattern Recognit. Workshops (CVPRW), Jul. 2017, pp. 1122–1131.
+[59] L. Hong, X. Wang, G. Zhang, and M. Zhao, “USOD10K: A new
+     benchmark dataset for underwater salient object detection,” IEEE Trans.
+     Image Process., vol. 34, pp. 1602–1615, 2025.
+[60] P. Drews Jr., E. do Nascimento, F. Moraes, S. Botelho, and M. Campos,
+     “Transmission estimation in underwater single images,” in Proc. IEEE                                  Yu Zhang received the B.S. degree in mechanical
+     Int. Conf. Comput. Vis. Workshops, Dec. 2013, pp. 825–830.                                            engineering from Shanghai University, Shanghai,
+[61] L.-C. Chen, Y. Zhu, G. Papandreou, F. Schroff, and H. Adam,                                           China, where she is currently pursuing the M.E.
+     “Encoder–decoder with Atrous separable convolution for semantic                                       degree with the Communication and Information
+     image segmentation,” in Proc. Eur. Conf. Comput. Vis. (ECCV), 2018,                                   Systems Laboratory. Her research interests include
+     pp. 801–818.                                                                                          underwater image/video compression and machine
+[62] W. Liu et al., “SSD: Single shot multibox detector,” in Proc. ECCV,                                   vision.
+     Oct. 2016, pp. 21–37.
+[63] X. Qin, Z. Zhang, C. Huang, M. Dehghan, O. R. Zaiane, and M. Jager-
+     sand, “U2-Net: Going deeper with nested U-structure for salient object
+     detection,” Pattern Recognit., vol. 106, Oct. 2020, Art. no. 107404.
+
+
+
+
+                         Meng Yu received the M.E. degree in com-                                          Rui Le received the B.S. degree in communi-
+                         munication engineering from Shanghai University,                                  cation engineering from Shanghai University of
+                         Shanghai, China, in 2024, where she is currently                                  Electric Power, Shanghai, China, in 2023. He is
+                         pursuing the Ph.D. degree with the Communication                                  currently pursuing the M.E. degree with the Com-
+                         and Information Systems Laboratory. Her research                                  munication and Information Systems Laboratory,
+                         interests include underwater image enhancement,                                   Shanghai University, Shanghai. His research inter-
+                         dehazing, deraining, and high-level vision tasks.                                 ests include underwater image compression and
+                                                                                                           computer vision.
+
