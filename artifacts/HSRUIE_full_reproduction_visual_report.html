@@ -1,0 +1,562 @@
+<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>HSRUIE cloud reproduction evidence report</title><style>body{margin:0;background:#f4f1eb;color:#202a2e;font-family:Trebuchet MS,Segoe UI,sans-serif;line-height:1.5}.wrap{max-width:1200px;margin:auto;padding:28px}.hero{background:#202a2e;color:#f9f5ed;border-radius:22px;padding:42px}.hero h1{font-size:52px;line-height:1.05;margin:12px 0}.hero p{font-size:18px;color:#d7e5df}.nav{position:sticky;top:0;background:#f4f1eb;padding:12px 0;border-bottom:1px solid #d8d2c7;z-index:2}.nav a{margin-right:16px;color:#202a2e;text-decoration:none}.kpis,.grid,.result-grid,.orig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.kpi,.panel,.card,figure{background:#fffdf8;border:1px solid #d8d2c7;border-radius:14px;padding:16px}.kpi strong{display:block;font-size:30px}.kpi span,small{color:#68757a}.callout{padding:15px;border-left:5px solid #147d78;background:#e8f1ed;margin:18px 0}.warn{border-color:#c56b2c;background:#fff0e4}.flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.step{background:#fffdf8;border:1px solid #d8d2c7;border-radius:12px;padding:12px}.step b{display:block}.result-grid,.orig-grid{grid-template-columns:repeat(2,1fr)}.card img,figure img{width:100%;display:block;border-radius:9px}.panel{padding:18px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #d8d2c7;padding:8px;text-align:left}pre{background:#202a2e;color:#e7eee9;padding:14px;border-radius:10px;white-space:pre-wrap;max-height:280px;overflow:auto;font-size:11px}.downloads{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.download{background:#fffdf8;border:1px solid #d8d2c7;border-radius:12px;padding:13px;display:block;color:#202a2e;text-decoration:none}.download b{display:block}footer{margin-top:42px;border-top:1px solid #d8d2c7;padding-top:16px;color:#68757a;font-size:12px}@media(max-width:850px){.kpis,.grid,.result-grid,.orig-grid,.downloads,.flow{grid-template-columns:1fr}.hero h1{font-size:38px}}</style></head><body><main class='wrap'>
+<header class='hero'><small>HSRUIE / CLOUD REPRODUCTION / EVIDENCE REPORT</small><h1>From server inference to a local evidence package</h1><p>Public checkpoint inference, first error, minimal fix, 8/8 outputs, descriptive data and paper references in one offline page.</p></header>
+<nav class='nav'><a href='#conclusion'>Conclusion</a><a href='#flow'>Process</a><a href='#env'>Environment</a><a href='#results'>Results</a><a href='#paper'>Paper refs</a><a href='#data'>Data</a><a href='#scope'>Scope</a><a href='#downloads'>Downloads</a></nav>
+<section id='conclusion'><div class='kpis'><div class='kpi'><strong>8 / 8</strong><span>outputs generated</span></div><div class='kpi'><strong>0.8067 s</strong><span>total inference</span></div><div class='kpi'><strong>0.6377 GiB</strong><span>peak CUDA memory</span></div><div class='kpi'><strong>RTX 4090</strong><span>capability (8,9)</span></div></div><div class='callout'><b>Validated conclusion</b>Released public weights loaded and ran on the cloud GPU, producing one official I_e output per input and an auditable result page.</div><div class='callout warn'><b>Scope boundary</b>This is not the paper's full UVTD/SUIM/USOD10K training or Tables I-VIII. PDF panels are smoke-test inputs; original figures are references, not same-image pixel checks.</div></section>
+<section id='flow'><h2>Process and evidence</h2><div class='flow'><div class='step'><b>01 Materials</b><small>paper, README, handoff</small></div><div class='step'><b>02 Cloud setup</b><small>code, NC weight</small></div><div class='step'><b>03 GPU check</b><small>4090, CUDA, matmul</small></div><div class='step'><b>04 Load</b><small>VGG19, CLIP, networks</small></div><div class='step'><b>05 Error</b><small>152 vs 153 feature size</small></div><div class='step'><b>06 Fix</b><small>resize to 256x256</small></div><div class='step'><b>07 Evidence</b><small>outputs, logs, hashes</small></div></div><div class='callout'><b>Failure -> fix</b>The first unmodified-size run reached FEM.py and failed because extracted panels were 305/306 pixels. Resizing only the cloud inputs to 256x256 made the official test script exit cleanly; model code and checkpoints were unchanged.</div></section>
+<section id='env'><h2>Environment audit</h2><div class='grid' style='grid-template-columns:1fr 1fr'><div class='panel'><table><tr><th>Item</th><th>Value</th></tr><tr><td>GPU / driver</td><td>RTX 4090 / 570.124.04</td></tr><tr><td>Python</td><td>3.8.20</td></tr><tr><td>PyTorch</td><td>2.2.2+cu121</td></tr><tr><td>CUDA</td><td>available; capability (8,9); matmul passed</td></tr><tr><td>Commit</td><td>397da5e492b309f5c1af4f64df73c5a647e038cd</td></tr><tr><td>NC SHA256</td><td>8a530b59...da57fed</td></tr></table></div><div class='panel'><h3>Runtime difference</h3><p>PyTorch 2.2.2+cu121 was used because the old 1.8.0+cu111 wheel was CDN-limited and targets at most sm_86. This was an environment substitution for the 4090; source code and weights were retained.</p><p>Full versions, hashes and nvidia-smi output are in <code>environment.txt</code>.</p></div></div></section>
+<section id='results'><h2>Input -> official I_e output</h2><div class='result-grid'><article class="card"><h3>paper_p12_000_306x305</h3><img src="artifacts/comparison/paper_p12_000_306x305.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_000_306x305_256.png">open PNG</a></p><small>Luma 0.457 -> 0.508; saturation 0.918 -> 0.583; edge density 0.102 -> 0.111</small></article><article class="card"><h3>paper_p12_001_306x306</h3><img src="artifacts/comparison/paper_p12_001_306x306.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_001_306x306_256.png">open PNG</a></p><small>Luma 0.365 -> 0.429; saturation 0.919 -> 0.685; edge density 0.089 -> 0.108</small></article><article class="card"><h3>paper_p12_002_306x305</h3><img src="artifacts/comparison/paper_p12_002_306x305.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_002_306x305_256.png">open PNG</a></p><small>Luma 0.503 -> 0.556; saturation 0.876 -> 0.591; edge density 0.076 -> 0.083</small></article><article class="card"><h3>paper_p12_007_305x306</h3><img src="artifacts/comparison/paper_p12_007_305x306.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_007_305x306_256.png">open PNG</a></p><small>Luma 0.328 -> 0.378; saturation 0.934 -> 0.722; edge density 0.074 -> 0.102</small></article><article class="card"><h3>paper_p12_009_305x305</h3><img src="artifacts/comparison/paper_p12_009_305x305.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_009_305x305_256.png">open PNG</a></p><small>Luma 0.356 -> 0.404; saturation 0.916 -> 0.717; edge density 0.077 -> 0.090</small></article><article class="card"><h3>paper_p12_010_306x305</h3><img src="artifacts/comparison/paper_p12_010_306x305.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_010_306x305_256.png">open PNG</a></p><small>Luma 0.352 -> 0.442; saturation 0.900 -> 0.667; edge density 0.246 -> 0.266</small></article><article class="card"><h3>paper_p12_013_305x305</h3><img src="artifacts/comparison/paper_p12_013_305x305.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_013_305x305_256.png">open PNG</a></p><small>Luma 0.221 -> 0.262; saturation 0.956 -> 0.803; edge density 0.149 -> 0.157</small></article><article class="card"><h3>paper_p12_014_306x306</h3><img src="artifacts/comparison/paper_p12_014_306x306.png" alt="input and output panel"><p><b>Official output:</b> <a href="artifacts/results_paper256/maps_cyclegan/test_latest/images/paper_p12_014_306x306_256.png">open PNG</a></p><small>Luma 0.588 -> 0.603; saturation 0.828 -> 0.552; edge density 0.121 -> 0.122</small></article></div></section>
+<section id='paper'><h2>Original paper references</h2><div class='orig-grid'><figure><img src="artifacts/original_fig5_page7.png"><figcaption>Fig.5: paper reference only; not same-image pixel comparison.</figcaption></figure><figure><img src="artifacts/original_fig7_page9.png"><figcaption>Fig.7: paper reference only; not same-image pixel comparison.</figcaption></figure><figure><img src="artifacts/original_fig9_fig10_page12.png"><figcaption>Fig.9-10: paper reference only; not same-image pixel comparison.</figcaption></figure><figure><img src="artifacts/original_fig11_page13.png"><figcaption>Fig.11: paper reference only; not same-image pixel comparison.</figcaption></figure></div></section>
+<section id='data'><h2>Descriptive data</h2><div class='grid' style='grid-template-columns:1fr 1fr'><div class='panel'><h3>Eight-image means</h3><p>Luma: 0.396 -> 0.448 (+12.96%)</p><p>Saturation: 0.906 -> 0.665 (-26.61%)</p><p>Edge density: 0.117 -> 0.130 (+11.31%)</p><p>These are descriptive input/output statistics, not PSNR, SSIM or benchmark scores.</p></div><div class='panel' style='overflow:auto'><table><tr><th>sample</th><th>in luma</th><th>out luma</th><th>in sat</th><th>out sat</th><th>in edge</th><th>out edge</th></tr><tr><td>paper_p12_000_306x305</td><td>0.457</td><td>0.508</td><td>0.918</td><td>0.583</td><td>0.102</td><td>0.111</td></tr><tr><td>paper_p12_001_306x306</td><td>0.365</td><td>0.429</td><td>0.919</td><td>0.685</td><td>0.089</td><td>0.108</td></tr><tr><td>paper_p12_002_306x305</td><td>0.503</td><td>0.556</td><td>0.876</td><td>0.591</td><td>0.076</td><td>0.083</td></tr><tr><td>paper_p12_007_305x306</td><td>0.328</td><td>0.378</td><td>0.934</td><td>0.722</td><td>0.074</td><td>0.102</td></tr><tr><td>paper_p12_009_305x305</td><td>0.356</td><td>0.404</td><td>0.916</td><td>0.717</td><td>0.077</td><td>0.090</td></tr><tr><td>paper_p12_010_306x305</td><td>0.352</td><td>0.442</td><td>0.900</td><td>0.667</td><td>0.246</td><td>0.266</td></tr><tr><td>paper_p12_013_305x305</td><td>0.221</td><td>0.262</td><td>0.956</td><td>0.803</td><td>0.149</td><td>0.157</td></tr><tr><td>paper_p12_014_306x306</td><td>0.588</td><td>0.603</td><td>0.828</td><td>0.552</td><td>0.121</td><td>0.122</td></tr></table></div></div></section>
+<section id='scope'><h2>Integrity boundary</h2><div class='grid' style='grid-template-columns:1fr 1fr'><div class='panel'><h3>Completed</h3><p>GPU and CUDA checks; five checkpoint loads; VGG19 and CLIP; official test.py; 8/8 outputs; HTML, PNG, CSV, JSON, logs and hashes.</p></div><div class='panel'><h3>Not claimed</h3><p>Full paper training, UVTD/SUIM/USOD10K task evaluation, Tables I-VIII, or same-image reconstruction of Fig. 10.</p></div></div></section>
+<section id='downloads'><h2>Downloads</h2><div class='downloads'><a class='download' href='artifacts/results_paper256/maps_cyclegan/test_latest/index.html'><b>Official result page</b><small>8 I_e outputs</small></a><a class='download' href='artifacts/HSRUIE_reproduction_report.md'><b>Reproduction report</b><small>environment and scope</small></a><a class='download' href='artifacts/metrics.csv'><b>Metrics CSV</b><small>per-image descriptive data</small></a><a class='download' href='artifacts/environment.txt'><b>Environment and hashes</b><small>versions and SHA256</small></a><a class='download' href='artifacts/test_paper_failed.log'><b>First error log</b><small>152 / 153 mismatch</small></a><a class='download' href='artifacts/test_paper256.log'><b>Success log</b><small>8/8 after resize</small></a><a class='download' href='artifacts/input_output_contact_sheet.png'><b>Contact sheet</b><small>overview image</small></a><a class='download' href='HSRUIE_cloud_reproduction_artifacts.tar.gz'><b>Full archive</b><small>downloaded cloud tar.gz</small></a></div></section>
+<section><h2>Raw logs</h2><details><summary>First failed run</summary><pre>2026-10-11T14:31:06+08:00
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter &#x27;pretrained&#x27; is deprecated since 0.13 and may be removed in the future, please use &#x27;weights&#x27; instead.
+  warnings.warn(
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for &#x27;weights&#x27; are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/functional.py:507: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3549.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Warning: wandb package cannot be found. The option &quot;--use_wandb&quot; will result in error.
+Warning: wandb package cannot be found. The option &quot;--use_wandb&quot; will result in error.
+----------------- Options ---------------
+             aspect_ratio: 1.0                           
+               batch_size: 2                             
+          checkpoints_dir: ./HSRUIE/checkpoints          	[default: ./checkpoints]
+                crop_size: 256                           
+                 dataroot: ./HSRUIE/datasets/paper_test  	[default: ./datasets/maps]
+             dataset_mode: single                        	[default: unaligned]
+                direction: AtoB                          
+          display_winsize: 256                           
+                    epoch: latest                        
+                     eval: True                          	[default: False]
+                  gpu_ids: 0                             	[default: 4]
+                init_gain: 0.02                          
+                init_type: normal                        
+                 input_nc: 3                             
+                  isTrain: False                         	[default: None]
+                load_iter: 0                             	[default: 0]
+                load_size: 256                           
+         max_dataset_size: inf                           
+                    model: cycle_gan                     	[default: test]
+               n_layers_D: 3                             
+                     name: maps_cyclegan                 
+                      ndf: 64                            
+                     netD: basic                         
+                     netG: resnet_9blocks                
+                      ngf: 64                            
+               no_dropout: True                          
+                  no_flip: False                         
+                     norm: instance                      
+                 num_test: 8                             	[default: 1000]
+              num_threads: 8                             
+                output_nc: 3                             
+                    phase: test                          
+               preprocess: resize_and_crop               
+              results_dir: ./HSRUIE/results_paper        	[default: ./results/]
+           serial_batches: False                         
+                   suffix:                               
+                use_wandb: False                         
+                  verbose: False                         
+       wandb_project_name: CycleGAN-and-pix2pix          
+----------------- End -------------------
+dataset [SingleDataset] was created
+initialize network with normal
+initialize network with normal
+initialize network with normal
+model [CycleGANModel] was created
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_LOW.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH2.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH3.pth
+---------- Networks initialized -------------
+[Network LOW] Total number of parameters : 0.133 M
+[Network HIGH2] Total number of parameters : 0.798 M
+[Network HIGH3] Total number of parameters : 1.083 M
+-----------------------------------------------
+creating web directory ./HSRUIE/results_paper/maps_cyclegan/test_latest
+Traceback (most recent call last):
+  File &quot;HSRUIE/test.py&quot;, line 74, in &lt;module&gt;
+    model.test()           # run inference
+  File &quot;/root/work/HSRUIE/models/base_model.py&quot;, line 105, in test
+    self.forward()
+  File &quot;/root/work/HSRUIE/models/cycle_gan_model.py&quot;, line 118, in forward
+    self.fe2 = self.netHIGH2(self.input, self.fc2)
+  File &quot;/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py&quot;, line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File &quot;/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py&quot;, line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File &quot;/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/parallel/data_parallel.py&quot;, line 183, in forward
+    return self.module(*inputs[0], **module_kwargs[0])
+  File &quot;/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py&quot;, line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File &quot;/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py&quot;, line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File &quot;/root/work/HSRUIE/models/FEM.py&quot;, line 13, in forward
+    x1 = self.low(input, x)
+  File &quot;/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py&quot;, line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File &quot;/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py&quot;, line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File &quot;/root/work/HSRUIE/models/FEM.py&quot;, line 139, in forward
+    out_feature = feature + img_feature
+RuntimeError: The size of tensor a (152) must match the size of tensor b (153) at non-singleton dimension 2
+2026-10-11T14:31:15+08:00
+</pre></details><details><summary>Successful run</summary><pre>2026-10-11T14:32:58+08:00
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter &#x27;pretrained&#x27; is deprecated since 0.13 and may be removed in the future, please use &#x27;weights&#x27; instead.
+  warnings.warn(
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for &#x27;weights&#x27; are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/functional.py:507: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3549.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Warning: wandb package cannot be found. The option &quot;--use_wandb&quot; will result in error.
+Warning: wandb package cannot be found. The option &quot;--use_wandb&quot; will result in error.
+----------------- Options ---------------
+             aspect_ratio: 1.0                           
+               batch_size: 2                             
+          checkpoints_dir: ./HSRUIE/checkpoints          	[default: ./checkpoints]
+                crop_size: 256                           
+                 dataroot: ./HSRUIE/datasets/paper_test_256	[default: ./datasets/maps]
+             dataset_mode: single                        	[default: unaligned]
+                direction: AtoB                          
+          display_winsize: 256                           
+                    epoch: latest                        
+                     eval: True                          	[default: False]
+                  gpu_ids: 0                             	[default: 4]
+                init_gain: 0.02                          
+                init_type: normal                        
+                 input_nc: 3                             
+                  isTrain: False                         	[default: None]
+                load_iter: 0                             	[default: 0]
+                load_size: 256                           
+         max_dataset_size: inf                           
+                    model: cycle_gan                     	[default: test]
+               n_layers_D: 3                             
+                     name: maps_cyclegan                 
+                      ndf: 64                            
+                     netD: basic                         
+                     netG: resnet_9blocks                
+                      ngf: 64                            
+               no_dropout: True                          
+                  no_flip: False                         
+                     norm: instance                      
+                 num_test: 8                             	[default: 1000]
+              num_threads: 8                             
+                output_nc: 3                             
+                    phase: test                          
+               preprocess: resize_and_crop               
+              results_dir: ./HSRUIE/results_paper256     	[default: ./results/]
+           serial_batches: False                         
+                   suffix:                               
+                use_wandb: False                         
+                  verbose: False                         
+       wandb_project_name: CycleGAN-and-pix2pix          
+----------------- End -------------------
+dataset [SingleDataset] was created
+initialize network with normal
+initialize network with normal
+initialize network with normal
+model [CycleGANModel] was created
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_LOW.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH2.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH3.pth
+---------- Networks initialized -------------
+[Network LOW] Total number of parameters : 0.133 M
+[Network HIGH2] Total number of parameters : 0.798 M
+[Network HIGH3] Total number of parameters : 1.083 M
+-----------------------------------------------
+creating web directory ./HSRUIE/results_paper256/maps_cyclegan/test_latest
+processing (0000)-th image... [&#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_000_306x305_256.png&#x27;]
+processing (0005)-th image... [&#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_010_306x305_256.png&#x27;]
+2026-10-11T14:33:07+08:00
+</pre></details><details><summary>Profile</summary><pre>----------------- Options ---------------
+             aspect_ratio: 1.0                           
+               batch_size: 2                             
+          checkpoints_dir: ./HSRUIE/checkpoints          	[default: ./checkpoints]
+                crop_size: 256                           
+                 dataroot: ./HSRUIE/datasets/paper_test_256	[default: ./datasets/maps]
+             dataset_mode: single                        	[default: unaligned]
+                direction: AtoB                          
+          display_winsize: 256                           
+                    epoch: latest                        
+                     eval: True                          	[default: False]
+                  gpu_ids: 0                             	[default: 4]
+                init_gain: 0.02                          
+                init_type: normal                        
+                 input_nc: 3                             
+                  isTrain: False                         	[default: None]
+                load_iter: 0                             	[default: 0]
+                load_size: 256                           
+         max_dataset_size: inf                           
+                    model: cycle_gan                     	[default: test]
+               n_layers_D: 3                             
+                     name: maps_cyclegan                 
+                      ndf: 64                            
+                     netD: basic                         
+                     netG: resnet_9blocks                
+                      ngf: 64                            
+               no_dropout: True                          
+                  no_flip: False                         
+                     norm: instance                      
+                 num_test: 8                             	[default: 1000]
+              num_threads: 8                             
+                output_nc: 3                             
+                    phase: test                          
+               preprocess: resize_and_crop               
+              results_dir: ./HSRUIE/results_profile      	[default: ./results/]
+           serial_batches: False                         
+                   suffix:                               
+                use_wandb: False                         
+                  verbose: False                         
+       wandb_project_name: CycleGAN-and-pix2pix          
+----------------- End -------------------
+dataset [SingleDataset] was created
+initialize network with normal
+initialize network with normal
+initialize network with normal
+model [CycleGANModel] was created
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_LOW.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH2.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH3.pth
+---------- Networks initialized -------------
+[Network LOW] Total number of parameters : 0.133 M
+[Network HIGH2] Total number of parameters : 0.798 M
+[Network HIGH3] Total number of parameters : 1.083 M
+-----------------------------------------------
+{&#x27;index&#x27;: 0, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_000_306x305_256.png&#x27;, &#x27;seconds&#x27;: 0.7234156206250191, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+{&#x27;index&#x27;: 1, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_001_306x306_256.png&#x27;, &#x27;seconds&#x27;: 0.014782235026359558, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+{&#x27;index&#x27;: 2, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_002_306x305_256.png&#x27;, &#x27;seconds&#x27;: 0.011602051556110382, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+{&#x27;index&#x27;: 3, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_007_305x306_256.png&#x27;, &#x27;seconds&#x27;: 0.011479087173938751, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+{&#x27;index&#x27;: 4, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_009_305x305_256.png&#x27;, &#x27;seconds&#x27;: 0.011385105550289154, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+{&#x27;index&#x27;: 5, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_010_306x305_256.png&#x27;, &#x27;seconds&#x27;: 0.011316895484924316, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+{&#x27;index&#x27;: 6, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_013_305x305_256.png&#x27;, &#x27;seconds&#x27;: 0.011306002736091614, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+{&#x27;index&#x27;: 7, &#x27;path&#x27;: &#x27;./HSRUIE/datasets/paper_test_256/testA/paper_p12_014_306x306_256.png&#x27;, &#x27;seconds&#x27;: 0.01138710230588913, &#x27;max_memory_gib&#x27;: 0.637749195098877}
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter &#x27;pretrained&#x27; is deprecated since 0.13 and may be removed in the future, please use &#x27;weights&#x27; instead.
+  warnings.warn(
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for &#x27;weights&#x27; are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/functional.py:507: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3549.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+{
+  &quot;records&quot;: [
+    {
+      &quot;index&quot;: 0,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_000_306x305_256.png&quot;,
+      &quot;seconds&quot;: 0.7234156206250191,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    },
+    {
+      &quot;index&quot;: 1,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_001_306x306_256.png&quot;,
+      &quot;seconds&quot;: 0.014782235026359558,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    },
+    {
+      &quot;index&quot;: 2,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_002_306x305_256.png&quot;,
+      &quot;seconds&quot;: 0.011602051556110382,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    },
+    {
+      &quot;index&quot;: 3,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_007_305x306_256.png&quot;,
+      &quot;seconds&quot;: 0.011479087173938751,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    },
+    {
+      &quot;index&quot;: 4,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_009_305x305_256.png&quot;,
+      &quot;seconds&quot;: 0.011385105550289154,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    },
+    {
+      &quot;index&quot;: 5,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_010_306x305_256.png&quot;,
+      &quot;seconds&quot;: 0.011316895484924316,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    },
+    {
+      &quot;index&quot;: 6,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_013_305x305_256.png&quot;,
+      &quot;seconds&quot;: 0.011306002736091614,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    },
+    {
+      &quot;index&quot;: 7,
+      &quot;path&quot;: &quot;./HSRUIE/datasets/paper_test_256/testA/paper_p12_014_306x306_256.png&quot;,
+      &quot;seconds&quot;: 0.01138710230588913,
+      &quot;max_memory_gib&quot;: 0.637749195098877
+    }
+  ],
+  &quot;total_seconds&quot;: 0.806674100458622,
+  &quot;mean_seconds&quot;: 0.10083426255732775
+}
+</pre></details><details><summary>Environment</summary><pre>=== nvidia-smi ===
+Sun Oct 11 14:43:07 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 570.124.04             Driver Version: 570.124.04     CUDA Version: 12.8     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 4090        On  |   00000000:46:00.0 Off |                  Off |
+|100%   41C    P8             30W /  450W |       1MiB /  24564MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+=== python/torch/cuda ===
+3.8.20 (default, Oct  3 2024, 15:24:27) 
+[GCC 11.2.0]
+torch 2.2.2+cu121
+torchvision 0.17.2+cu121
+cuda_available True
+device NVIDIA GeForce RTX 4090
+capability (8, 9)
+arch_list [&#x27;sm_50&#x27;, &#x27;sm_60&#x27;, &#x27;sm_70&#x27;, &#x27;sm_75&#x27;, &#x27;sm_80&#x27;, &#x27;sm_86&#x27;, &#x27;sm_90&#x27;]
+matmul 12.676322937011719
+=== git ===
+397da5e492b309f5c1af4f64df73c5a647e038cd
+ M CLIP/LICENSE
+ M CLIP/MANIFEST.in
+ M CLIP/README.md
+ M CLIP/clip.egg-info/PKG-INFO
+ M CLIP/clip.egg-info/SOURCES.txt
+ M CLIP/clip.egg-info/dependency_links.txt
+ M CLIP/clip.egg-info/requires.txt
+ M CLIP/clip.egg-info/top_level.txt
+ M CLIP/clip/__init__.py
+ M CLIP/clip/__pycache__/__init__.cpython-38.pyc
+ M CLIP/clip/__pycache__/clip.cpython-38.pyc
+ M CLIP/clip/__pycache__/model.cpython-38.pyc
+ M CLIP/clip/__pycache__/simple_tokenizer.cpython-38.pyc
+ M CLIP/clip/clip.py
+ M CLIP/clip/model.py
+ M CLIP/clip/simple_tokenizer.py
+ M CLIP/hubconf.py
+ M CLIP/model-card.md
+ M CLIP/requirements.txt
+ M CLIP/setup.py
+ M CLIP/tests/test_consistency.py
+ M README.md
+ M data/__init__.py
+ M data/aligned_dataset.py
+ M data/base_dataset.py
+ M data/colorization_dataset.py
+ M data/image_folder.py
+ M data/single_dataset.py
+ M data/unaligned_dataset.py
+ M environment.yml
+ M models/__init__.py
+ M models/base_model.py
+ M models/colorization_model.py
+ M models/cycle_gan_model.py
+ M models/networks.py
+ M models/pix2pix_model.py
+ M options/__init__.py
+ M options/__pycache__/__init__.cpython-38.pyc
+ M options/__pycache__/base_options.cpython-38.pyc
+ M options/__pycache__/test_options.cpython-38.pyc
+ M options/base_options.py
+ M options/test_options.py
+ M options/train_options.py
+ M scripts/conda_deps.sh
+ M scripts/download_cyclegan_model.sh
+ M scripts/download_pix2pix_model.sh
+ M scripts/edges/PostprocessHED.m
+ M scripts/edges/batch_hed.py
+ M scripts/eval_cityscapes/caffemodel/deploy.prototxt
+ M scripts/eval_cityscapes/cityscapes.py
+ M scripts/eval_cityscapes/download_fcn8s.sh
+ M scripts/eval_cityscapes/evaluate.py
+ M scripts/eval_cityscapes/util.py
+ M scripts/install_deps.sh
+ M scripts/test_before_push.py
+ M scripts/test_colorization.sh
+ M scripts/test_cyclegan.sh
+ M scripts/test_pix2pix.sh
+ M scripts/test_single.sh
+ M scripts/train_colorization.sh
+ M scripts/train_cyclegan.sh
+ M scripts/train_pix2pix.sh
+ M test.py
+ M train.py
+ M unet_test/nets/__pycache__/__init__.cpython-38.pyc
+ M unet_test/nets/__pycache__/resnet.cpython-38.pyc
+ M unet_test/nets/__pycache__/unet.cpython-38.pyc
+ M unet_test/nets/__pycache__/unet_training.cpython-38.pyc
+ M unet_test/nets/__pycache__/vgg.cpython-38.pyc
+ M unet_test/nets/resnet.py
+ M unet_test/nets/unet.py
+ M unet_test/nets/unet_draw.py
+ M unet_test/utils/utils.py
+ M util/__init__.py
+ M util/__pycache__/__init__.cpython-38.pyc
+ M util/__pycache__/html.cpython-38.pyc
+ M util/__pycache__/image_pool.cpython-38.pyc
+ M util/__pycache__/util.cpython-38.pyc
+ M util/__pycache__/visualizer.cpython-38.pyc
+ M util/get_data.py
+ M util/html.py
+ M util/image_pool.py
+ M util/util.py
+ M util/visualizer.py
+?? checkpoints/maps_cyclegan/latest_net_NC.pth
+?? checkpoints/maps_cyclegan/test_opt.txt
+?? data/__pycache__/
+?? datasets/
+?? model_data/
+?? models/__pycache__/
+?? results_paper256/
+=== hashes ===
+a464cff319a17e8cebfbc200f70846925b9964640f79386505e7c6cde7b3f2af  HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH2.pth
+ddbb0f17a1881a14fd4c8823a84e18e8a3c8d181fad3401b2ed0dea179a13eb5  HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH3.pth
+2be0932616dc6b09fd78a333af00ac574c7f468da922bf5e11f4967b2371fa19  HSRUIE/checkpoints/maps_cyclegan/latest_net_LOW.pth
+8a530b5960698b78e638fad2ae2d3b09f789b090cc21d505abeffdf39da57fed  HSRUIE/checkpoints/maps_cyclegan/latest_net_NC.pth
+0d66726fbf23257dead2328bd41afa90fcc145cdc5a41b9d4585a80315c1b63b  HSRUIE/checkpoints/maps_cyclegan/latest_net_SAD.pth
+dcbb9e9dad569fff7a846263a77324fc34978fea2bfb039c012d710e1776ae44  HSRUIE/model_data/vgg19-dcbb9e9d.pth
+afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762  /root/.cache/clip/RN50.pt
+=== packages ===
+certifi==2026.7.22
+charset-normalizer==3.5.2
+contourpy==1.1.1
+cycler==0.12.1
+dominate==2.9.1
+filelock==3.16.1
+fonttools==4.57.0
+fsspec==2025.3.0
+ftfy==6.2.3
+idna==3.15
+imageio==2.35.1
+importlib_resources==6.4.5
+Jinja2==3.1.6
+jsonpatch==1.33
+jsonpointer==3.0.0
+kiwisolver==1.4.7
+lazy_loader==0.4
+MarkupSafe==2.1.5
+matplotlib==3.7.5
+mpmath==1.3.0
+networkx==3.1
+numpy==1.24.4
+nvidia-cublas-cu12==12.1.3.1
+nvidia-cuda-cupti-cu12==12.1.105
+nvidia-cuda-nvrtc-cu12==12.1.105
+nvidia-cuda-runtime-cu12==12.1.105
+nvidia-cudnn-cu12==8.9.2.26
+nvidia-cufft-cu12==11.0.2.54
+nvidia-curand-cu12==10.3.2.106
+nvidia-cusolver-cu12==11.4.5.107
+nvidia-cusparse-cu12==12.1.0.106
+nvidia-nccl-cu12==2.19.3
+nvidia-nvjitlink-cu12==12.9.86
+nvidia-nvtx-cu12==12.1.105
+opencv-python==4.10.0.84
+packaging==26.2
+pandas==2.0.3
+pillow==10.4.0
+PyMuPDF==1.24.10
+PyMuPDFb==1.24.10
+pyparsing==3.1.4
+pypdf==4.3.1
+python-dateutil==2.9.0.post0
+pytorch-wavelets==1.3.0
+pytz==2026.5
+PyWavelets==1.4.1
+regex==2024.9.11
+requests==2.32.4
+scikit-image==0.21.0
+scipy==1.10.1
+six==1.17.0
+sympy==1.13.3
+thop==0.1.1.post2209072238
+tifffile==2023.7.10
+torch==2.2.2
+torchvision==0.17.2
+tornado==6.4.2
+tqdm==4.66.5
+triton==2.2.0
+typing_extensions==4.13.2
+tzdata==2026.5
+urllib3==2.2.3
+visdom==0.2.4
+wcwidth==0.2.14
+websocket-client==1.8.0
+zipp==3.20.2
+</pre></details><details><summary>Report</summary><pre># HSRUIE cloud reproduction report
+
+Date: 2026-10-11 (Asia/Shanghai)
+
+Paper: *Task-Driven Underwater Image Enhancement via Hierarchical Semantic Refinement*  
+DOI: `10.1109/TIP.2025.3647323`  
+Official repository: `gemyumeng/HSRUIE`  
+Commit: `397da5e492b309f5c1af4f64df73c5a647e038cd`
+
+## Scope
+
+This run verifies the public checkpoint inference path only. It does not claim to reproduce the paper&#x27;s training, UVTD/SUIM/USOD10K full evaluation, or Tables I–VIII. The official repository has no dataset, and the local material refers to a missing `HSRUIE_detailed_reproduction_guide.md`.
+
+The paper reports UVTD (5,380 images), SUIM (1,634), USOD10K (10,255), 256x256 random crops, 50+50 epochs for stages 1 and 3, 100+100 epochs for stage 2, batch size 2, Adam, and an RTX 2070 workstation. This run uses an RTX 4090 and the released checkpoints, so it is a cloud inference validation under a different runtime.
+
+## Cloud environment
+
+All model loading, inference, PDF image extraction and figure generation were performed on the server under `/root/work`. The report text was assembled from those cloud logs. No local inference was run.
+
+- GPU: NVIDIA GeForce RTX 4090, 24 GB; driver 570.124.04; system CUDA 12.8.
+- Python 3.8.20; PyTorch `2.2.2+cu121`; torchvision `0.17.2+cu121`.
+- CUDA check passed: `cuda available=True`, capability `(8,9)`, a CUDA 2x3 matrix multiplication succeeded.
+- PyTorch 2.2.2 was used because the old 1.8.0+cu111 wheel was repeatedly CDN-limited and targets at most sm_86. The model code and checkpoints were not changed.
+
+Full driver output, package list, runtime check, and SHA256 values are in `environment.txt`.
+
+## Weights
+
+LOW, HIGH2, HIGH3, SAD and NC are in `HSRUIE/checkpoints/maps_cyclegan/`. NC is 37,238,739 bytes and has SHA256 `8a530b5960698b78e638fad2ae2d3b09f789b090cc21d505abeffdf39da57fed`. VGG19 is in `HSRUIE/model_data/vgg19-dcbb9e9d.pth`; CLIP RN50 is in `~/.cache/clip/RN50.pt`. Complete hashes are in `environment.txt`.
+
+## Inputs and preprocessing
+
+The repository does not contain test images. On the server, eight embedded raster panels were extracted from page 12 of the supplied paper PDF and used as auditable smoke-test inputs. The original PDF pages are preserved as visual references.
+
+The released `base_dataset.py` keeps resize/crop/flip commented out. The extracted panels were 305/306 pixels, and the first unmodified-size run failed in `models/FEM.py` with a one-pixel feature concatenation mismatch (`152` vs `153`). Following the handoff document, the eight inputs were resized with Lanczos to 256x256 in the cloud; no model source was patched. The failed log is `test_paper_failed.log`; input hashes are in `input_sha256.txt`.
+
+## Command
+
+```bash
+cd /root/work
+source /root/miniconda3/etc/profile.d/conda.sh
+conda activate hsruie
+python HSRUIE/test.py \
+  --dataroot ./HSRUIE/datasets/paper_test_256 \
+  --dataset_mode single --name maps_cyclegan --model cycle_gan \
+  --checkpoints_dir ./HSRUIE/checkpoints \
+  --results_dir ./HSRUIE/results_paper256 \
+  --gpu_ids 0 --num_test 8 --eval
+```
+
+The official commit loads `netLOW` but skips it in `forward()` (`fe1 = fc1`). That behavior was retained and recorded.
+
+## Results and evidence
+
+- `results_paper256/maps_cyclegan/test_latest/index.html`: official result page.
+- `input_output_contact_sheet.png`: eight input to `I_e` output pairs.
+- `metrics.csv` and `metrics.json`: per-image RGB/luminance/saturation/edge statistics. These are descriptive statistics, not PSNR or SSIM because no ground truth is available.
+- `profile.json`: eight-image timing and GPU memory. Total inference time was 0.8067 s; mean including warmup was 0.1008 s/image; peak `torch.cuda.max_memory_allocated()` was 0.6377 GiB.
+- `original_fig9_fig10_page12.png`, `original_fig5_page7.png`, `original_fig7_page9.png`, `original_fig11_page13.png`: extracted paper figure regions. `original_pages/` contains high-resolution page 7 through page 13 PNGs.
+- `index.html`: browser page containing input/output pairs and original paper references.
+
+The paper images are reference evidence, not pixel-identical comparisons on the same UVTD sample. The paper does not release the raw Fig. 10 input files with this repository, so the PDF-panel smoke test cannot be called a same-image reconstruction of Fig. 10.
+
+## Acceptance
+
+1. RTX 4090 CUDA device and actual tensor computation passed.
+2. All public model weights plus VGG19 and CLIP loaded successfully.
+3. After the documented 256x256 input preprocessing, the official test script exited cleanly, created `index.html`, and produced 8/8 output images.
+4. PNG, HTML, CSV, JSON, hashes, environment logs, original-paper references, and this report are saved in the cloud artifact directory.
+5. The evidence supports successful cloud inference with the released weights. It does not support a claim that the paper&#x27;s full training and table metrics have been reproduced.
+</pre></details></section>
+<footer>Built offline from downloaded cloud artifacts. Images are embedded or linked to the same local folder. No external network is required.</footer></main></body></html>

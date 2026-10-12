@@ -1,0 +1,91 @@
+2026-10-11T14:31:06+08:00
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/functional.py:507: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3549.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Warning: wandb package cannot be found. The option "--use_wandb" will result in error.
+Warning: wandb package cannot be found. The option "--use_wandb" will result in error.
+----------------- Options ---------------
+             aspect_ratio: 1.0                           
+               batch_size: 2                             
+          checkpoints_dir: ./HSRUIE/checkpoints          	[default: ./checkpoints]
+                crop_size: 256                           
+                 dataroot: ./HSRUIE/datasets/paper_test  	[default: ./datasets/maps]
+             dataset_mode: single                        	[default: unaligned]
+                direction: AtoB                          
+          display_winsize: 256                           
+                    epoch: latest                        
+                     eval: True                          	[default: False]
+                  gpu_ids: 0                             	[default: 4]
+                init_gain: 0.02                          
+                init_type: normal                        
+                 input_nc: 3                             
+                  isTrain: False                         	[default: None]
+                load_iter: 0                             	[default: 0]
+                load_size: 256                           
+         max_dataset_size: inf                           
+                    model: cycle_gan                     	[default: test]
+               n_layers_D: 3                             
+                     name: maps_cyclegan                 
+                      ndf: 64                            
+                     netD: basic                         
+                     netG: resnet_9blocks                
+                      ngf: 64                            
+               no_dropout: True                          
+                  no_flip: False                         
+                     norm: instance                      
+                 num_test: 8                             	[default: 1000]
+              num_threads: 8                             
+                output_nc: 3                             
+                    phase: test                          
+               preprocess: resize_and_crop               
+              results_dir: ./HSRUIE/results_paper        	[default: ./results/]
+           serial_batches: False                         
+                   suffix:                               
+                use_wandb: False                         
+                  verbose: False                         
+       wandb_project_name: CycleGAN-and-pix2pix          
+----------------- End -------------------
+dataset [SingleDataset] was created
+initialize network with normal
+initialize network with normal
+initialize network with normal
+model [CycleGANModel] was created
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_LOW.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH2.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH3.pth
+---------- Networks initialized -------------
+[Network LOW] Total number of parameters : 0.133 M
+[Network HIGH2] Total number of parameters : 0.798 M
+[Network HIGH3] Total number of parameters : 1.083 M
+-----------------------------------------------
+creating web directory ./HSRUIE/results_paper/maps_cyclegan/test_latest
+Traceback (most recent call last):
+  File "HSRUIE/test.py", line 74, in <module>
+    model.test()           # run inference
+  File "/root/work/HSRUIE/models/base_model.py", line 105, in test
+    self.forward()
+  File "/root/work/HSRUIE/models/cycle_gan_model.py", line 118, in forward
+    self.fe2 = self.netHIGH2(self.input, self.fc2)
+  File "/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/parallel/data_parallel.py", line 183, in forward
+    return self.module(*inputs[0], **module_kwargs[0])
+  File "/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/root/work/HSRUIE/models/FEM.py", line 13, in forward
+    x1 = self.low(input, x)
+  File "/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/root/work/HSRUIE/models/FEM.py", line 139, in forward
+    out_feature = feature + img_feature
+RuntimeError: The size of tensor a (152) must match the size of tensor b (153) at non-singleton dimension 2
+2026-10-11T14:31:15+08:00

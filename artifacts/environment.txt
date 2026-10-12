@@ -1,0 +1,199 @@
+=== nvidia-smi ===
+Sun Oct 11 14:43:07 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 570.124.04             Driver Version: 570.124.04     CUDA Version: 12.8     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 4090        On  |   00000000:46:00.0 Off |                  Off |
+|100%   41C    P8             30W /  450W |       1MiB /  24564MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+=== python/torch/cuda ===
+3.8.20 (default, Oct  3 2024, 15:24:27) 
+[GCC 11.2.0]
+torch 2.2.2+cu121
+torchvision 0.17.2+cu121
+cuda_available True
+device NVIDIA GeForce RTX 4090
+capability (8, 9)
+arch_list ['sm_50', 'sm_60', 'sm_70', 'sm_75', 'sm_80', 'sm_86', 'sm_90']
+matmul 12.676322937011719
+=== git ===
+397da5e492b309f5c1af4f64df73c5a647e038cd
+ M CLIP/LICENSE
+ M CLIP/MANIFEST.in
+ M CLIP/README.md
+ M CLIP/clip.egg-info/PKG-INFO
+ M CLIP/clip.egg-info/SOURCES.txt
+ M CLIP/clip.egg-info/dependency_links.txt
+ M CLIP/clip.egg-info/requires.txt
+ M CLIP/clip.egg-info/top_level.txt
+ M CLIP/clip/__init__.py
+ M CLIP/clip/__pycache__/__init__.cpython-38.pyc
+ M CLIP/clip/__pycache__/clip.cpython-38.pyc
+ M CLIP/clip/__pycache__/model.cpython-38.pyc
+ M CLIP/clip/__pycache__/simple_tokenizer.cpython-38.pyc
+ M CLIP/clip/clip.py
+ M CLIP/clip/model.py
+ M CLIP/clip/simple_tokenizer.py
+ M CLIP/hubconf.py
+ M CLIP/model-card.md
+ M CLIP/requirements.txt
+ M CLIP/setup.py
+ M CLIP/tests/test_consistency.py
+ M README.md
+ M data/__init__.py
+ M data/aligned_dataset.py
+ M data/base_dataset.py
+ M data/colorization_dataset.py
+ M data/image_folder.py
+ M data/single_dataset.py
+ M data/unaligned_dataset.py
+ M environment.yml
+ M models/__init__.py
+ M models/base_model.py
+ M models/colorization_model.py
+ M models/cycle_gan_model.py
+ M models/networks.py
+ M models/pix2pix_model.py
+ M options/__init__.py
+ M options/__pycache__/__init__.cpython-38.pyc
+ M options/__pycache__/base_options.cpython-38.pyc
+ M options/__pycache__/test_options.cpython-38.pyc
+ M options/base_options.py
+ M options/test_options.py
+ M options/train_options.py
+ M scripts/conda_deps.sh
+ M scripts/download_cyclegan_model.sh
+ M scripts/download_pix2pix_model.sh
+ M scripts/edges/PostprocessHED.m
+ M scripts/edges/batch_hed.py
+ M scripts/eval_cityscapes/caffemodel/deploy.prototxt
+ M scripts/eval_cityscapes/cityscapes.py
+ M scripts/eval_cityscapes/download_fcn8s.sh
+ M scripts/eval_cityscapes/evaluate.py
+ M scripts/eval_cityscapes/util.py
+ M scripts/install_deps.sh
+ M scripts/test_before_push.py
+ M scripts/test_colorization.sh
+ M scripts/test_cyclegan.sh
+ M scripts/test_pix2pix.sh
+ M scripts/test_single.sh
+ M scripts/train_colorization.sh
+ M scripts/train_cyclegan.sh
+ M scripts/train_pix2pix.sh
+ M test.py
+ M train.py
+ M unet_test/nets/__pycache__/__init__.cpython-38.pyc
+ M unet_test/nets/__pycache__/resnet.cpython-38.pyc
+ M unet_test/nets/__pycache__/unet.cpython-38.pyc
+ M unet_test/nets/__pycache__/unet_training.cpython-38.pyc
+ M unet_test/nets/__pycache__/vgg.cpython-38.pyc
+ M unet_test/nets/resnet.py
+ M unet_test/nets/unet.py
+ M unet_test/nets/unet_draw.py
+ M unet_test/utils/utils.py
+ M util/__init__.py
+ M util/__pycache__/__init__.cpython-38.pyc
+ M util/__pycache__/html.cpython-38.pyc
+ M util/__pycache__/image_pool.cpython-38.pyc
+ M util/__pycache__/util.cpython-38.pyc
+ M util/__pycache__/visualizer.cpython-38.pyc
+ M util/get_data.py
+ M util/html.py
+ M util/image_pool.py
+ M util/util.py
+ M util/visualizer.py
+?? checkpoints/maps_cyclegan/latest_net_NC.pth
+?? checkpoints/maps_cyclegan/test_opt.txt
+?? data/__pycache__/
+?? datasets/
+?? model_data/
+?? models/__pycache__/
+?? results_paper256/
+=== hashes ===
+a464cff319a17e8cebfbc200f70846925b9964640f79386505e7c6cde7b3f2af  HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH2.pth
+ddbb0f17a1881a14fd4c8823a84e18e8a3c8d181fad3401b2ed0dea179a13eb5  HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH3.pth
+2be0932616dc6b09fd78a333af00ac574c7f468da922bf5e11f4967b2371fa19  HSRUIE/checkpoints/maps_cyclegan/latest_net_LOW.pth
+8a530b5960698b78e638fad2ae2d3b09f789b090cc21d505abeffdf39da57fed  HSRUIE/checkpoints/maps_cyclegan/latest_net_NC.pth
+0d66726fbf23257dead2328bd41afa90fcc145cdc5a41b9d4585a80315c1b63b  HSRUIE/checkpoints/maps_cyclegan/latest_net_SAD.pth
+dcbb9e9dad569fff7a846263a77324fc34978fea2bfb039c012d710e1776ae44  HSRUIE/model_data/vgg19-dcbb9e9d.pth
+afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762  /root/.cache/clip/RN50.pt
+=== packages ===
+certifi==2026.7.22
+charset-normalizer==3.5.2
+contourpy==1.1.1
+cycler==0.12.1
+dominate==2.9.1
+filelock==3.16.1
+fonttools==4.57.0
+fsspec==2025.3.0
+ftfy==6.2.3
+idna==3.15
+imageio==2.35.1
+importlib_resources==6.4.5
+Jinja2==3.1.6
+jsonpatch==1.33
+jsonpointer==3.0.0
+kiwisolver==1.4.7
+lazy_loader==0.4
+MarkupSafe==2.1.5
+matplotlib==3.7.5
+mpmath==1.3.0
+networkx==3.1
+numpy==1.24.4
+nvidia-cublas-cu12==12.1.3.1
+nvidia-cuda-cupti-cu12==12.1.105
+nvidia-cuda-nvrtc-cu12==12.1.105
+nvidia-cuda-runtime-cu12==12.1.105
+nvidia-cudnn-cu12==8.9.2.26
+nvidia-cufft-cu12==11.0.2.54
+nvidia-curand-cu12==10.3.2.106
+nvidia-cusolver-cu12==11.4.5.107
+nvidia-cusparse-cu12==12.1.0.106
+nvidia-nccl-cu12==2.19.3
+nvidia-nvjitlink-cu12==12.9.86
+nvidia-nvtx-cu12==12.1.105
+opencv-python==4.10.0.84
+packaging==26.2
+pandas==2.0.3
+pillow==10.4.0
+PyMuPDF==1.24.10
+PyMuPDFb==1.24.10
+pyparsing==3.1.4
+pypdf==4.3.1
+python-dateutil==2.9.0.post0
+pytorch-wavelets==1.3.0
+pytz==2026.5
+PyWavelets==1.4.1
+regex==2024.9.11
+requests==2.32.4
+scikit-image==0.21.0
+scipy==1.10.1
+six==1.17.0
+sympy==1.13.3
+thop==0.1.1.post2209072238
+tifffile==2023.7.10
+torch==2.2.2
+torchvision==0.17.2
+tornado==6.4.2
+tqdm==4.66.5
+triton==2.2.0
+typing_extensions==4.13.2
+tzdata==2026.5
+urllib3==2.2.3
+visdom==0.2.4
+wcwidth==0.2.14
+websocket-client==1.8.0
+zipp==3.20.2

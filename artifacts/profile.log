@@ -1,0 +1,122 @@
+----------------- Options ---------------
+             aspect_ratio: 1.0                           
+               batch_size: 2                             
+          checkpoints_dir: ./HSRUIE/checkpoints          	[default: ./checkpoints]
+                crop_size: 256                           
+                 dataroot: ./HSRUIE/datasets/paper_test_256	[default: ./datasets/maps]
+             dataset_mode: single                        	[default: unaligned]
+                direction: AtoB                          
+          display_winsize: 256                           
+                    epoch: latest                        
+                     eval: True                          	[default: False]
+                  gpu_ids: 0                             	[default: 4]
+                init_gain: 0.02                          
+                init_type: normal                        
+                 input_nc: 3                             
+                  isTrain: False                         	[default: None]
+                load_iter: 0                             	[default: 0]
+                load_size: 256                           
+         max_dataset_size: inf                           
+                    model: cycle_gan                     	[default: test]
+               n_layers_D: 3                             
+                     name: maps_cyclegan                 
+                      ndf: 64                            
+                     netD: basic                         
+                     netG: resnet_9blocks                
+                      ngf: 64                            
+               no_dropout: True                          
+                  no_flip: False                         
+                     norm: instance                      
+                 num_test: 8                             	[default: 1000]
+              num_threads: 8                             
+                output_nc: 3                             
+                    phase: test                          
+               preprocess: resize_and_crop               
+              results_dir: ./HSRUIE/results_profile      	[default: ./results/]
+           serial_batches: False                         
+                   suffix:                               
+                use_wandb: False                         
+                  verbose: False                         
+       wandb_project_name: CycleGAN-and-pix2pix          
+----------------- End -------------------
+dataset [SingleDataset] was created
+initialize network with normal
+initialize network with normal
+initialize network with normal
+model [CycleGANModel] was created
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_LOW.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH2.pth
+loading the model from ./HSRUIE/checkpoints/maps_cyclegan/latest_net_HIGH3.pth
+---------- Networks initialized -------------
+[Network LOW] Total number of parameters : 0.133 M
+[Network HIGH2] Total number of parameters : 0.798 M
+[Network HIGH3] Total number of parameters : 1.083 M
+-----------------------------------------------
+{'index': 0, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_000_306x305_256.png', 'seconds': 0.7234156206250191, 'max_memory_gib': 0.637749195098877}
+{'index': 1, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_001_306x306_256.png', 'seconds': 0.014782235026359558, 'max_memory_gib': 0.637749195098877}
+{'index': 2, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_002_306x305_256.png', 'seconds': 0.011602051556110382, 'max_memory_gib': 0.637749195098877}
+{'index': 3, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_007_305x306_256.png', 'seconds': 0.011479087173938751, 'max_memory_gib': 0.637749195098877}
+{'index': 4, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_009_305x305_256.png', 'seconds': 0.011385105550289154, 'max_memory_gib': 0.637749195098877}
+{'index': 5, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_010_306x305_256.png', 'seconds': 0.011316895484924316, 'max_memory_gib': 0.637749195098877}
+{'index': 6, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_013_305x305_256.png', 'seconds': 0.011306002736091614, 'max_memory_gib': 0.637749195098877}
+{'index': 7, 'path': './HSRUIE/datasets/paper_test_256/testA/paper_p12_014_306x306_256.png', 'seconds': 0.01138710230588913, 'max_memory_gib': 0.637749195098877}
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/root/miniconda3/envs/hsruie/lib/python3.8/site-packages/torch/functional.py:507: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3549.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+{
+  "records": [
+    {
+      "index": 0,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_000_306x305_256.png",
+      "seconds": 0.7234156206250191,
+      "max_memory_gib": 0.637749195098877
+    },
+    {
+      "index": 1,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_001_306x306_256.png",
+      "seconds": 0.014782235026359558,
+      "max_memory_gib": 0.637749195098877
+    },
+    {
+      "index": 2,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_002_306x305_256.png",
+      "seconds": 0.011602051556110382,
+      "max_memory_gib": 0.637749195098877
+    },
+    {
+      "index": 3,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_007_305x306_256.png",
+      "seconds": 0.011479087173938751,
+      "max_memory_gib": 0.637749195098877
+    },
+    {
+      "index": 4,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_009_305x305_256.png",
+      "seconds": 0.011385105550289154,
+      "max_memory_gib": 0.637749195098877
+    },
+    {
+      "index": 5,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_010_306x305_256.png",
+      "seconds": 0.011316895484924316,
+      "max_memory_gib": 0.637749195098877
+    },
+    {
+      "index": 6,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_013_305x305_256.png",
+      "seconds": 0.011306002736091614,
+      "max_memory_gib": 0.637749195098877
+    },
+    {
+      "index": 7,
+      "path": "./HSRUIE/datasets/paper_test_256/testA/paper_p12_014_306x306_256.png",
+      "seconds": 0.01138710230588913,
+      "max_memory_gib": 0.637749195098877
+    }
+  ],
+  "total_seconds": 0.806674100458622,
+  "mean_seconds": 0.10083426255732775
+}
